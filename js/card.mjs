@@ -8,11 +8,12 @@ export class Card {
         this.suit = suit;
         this.value = value;
         // Create element
-        this.element = document.createElement("DIV");
-        $(this).addClass("card");
+        this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><p>${this.value}</p><img src="/res/${this.suit}-icon.png"></div>`))[0];
         // Start covered
         this.cover();
     }
+    // Getters
+    getElement() { return this.element; }
     // Visual modifiers
     uncover() {
         this.isCovered = false;
@@ -23,4 +24,3 @@ export class Card {
         $(this.element).addClass("covered");
     }
 }
-;
