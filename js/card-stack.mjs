@@ -1,9 +1,11 @@
 export class CardStack {
     container; // The container element that contains the card stack
     children;
-    constructor(container) {
+    type;
+    constructor(container, type) {
         this.container = container;
         this.children = [];
+        this.type = type;
     }
     // Pushes a card onto the bottom of the stack
     push(card) {

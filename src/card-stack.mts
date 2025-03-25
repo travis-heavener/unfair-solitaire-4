@@ -1,12 +1,16 @@
 import { Card } from "./card.mjs";
 
+type StackType = "ace" | "deck" | "empty" | "board";
+
 export class CardStack {
     private container: HTMLElement; // The container element that contains the card stack
     private children: Card[];
+    private type: StackType;
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, type: StackType) {
         this.container = container;
         this.children = [];
+        this.type = type;
     }
 
     // Pushes a card onto the bottom of the stack

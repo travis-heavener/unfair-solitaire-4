@@ -5,21 +5,21 @@ import { generateCards } from "./toolbox.mjs";
 // Store a reference to all card stacks in the game
 const cardStacks = {
     "aces": [
-        new CardStack( $(".ace-stack")[0] ),
-        new CardStack( $(".ace-stack")[1] ),
-        new CardStack( $(".ace-stack")[2] ),
-        new CardStack( $(".ace-stack")[3] )
+        new CardStack( $(".ace-stack")[0], "ace" ),
+        new CardStack( $(".ace-stack")[1], "ace" ),
+        new CardStack( $(".ace-stack")[2], "ace" ),
+        new CardStack( $(".ace-stack")[3], "ace" )
     ],
-    "emptyDeck": new CardStack( $("#deck-empty-stack")[0] ),
-    "deck": new CardStack( $("#deck-stack")[0] ),
+    "emptyDeck": new CardStack( $("#deck-empty-stack")[0], "empty" ),
+    "deck": new CardStack( $("#deck-stack")[0], "deck" ),
     "board": [
-        new CardStack( $(".column")[0] ),
-        new CardStack( $(".column")[1] ),
-        new CardStack( $(".column")[2] ),
-        new CardStack( $(".column")[3] ),
-        new CardStack( $(".column")[4] ),
-        new CardStack( $(".column")[5] ),
-        new CardStack( $(".column")[6] )
+        new CardStack( $(".column")[0], "board" ),
+        new CardStack( $(".column")[1], "board" ),
+        new CardStack( $(".column")[2], "board" ),
+        new CardStack( $(".column")[3], "board" ),
+        new CardStack( $(".column")[4], "board" ),
+        new CardStack( $(".column")[5], "board" ),
+        new CardStack( $(".column")[6], "board" )
     ]
 };
 
