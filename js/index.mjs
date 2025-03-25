@@ -43,4 +43,6 @@ const startGame = () => {
     // Push remaining cards to the deck
     for (let i = 51; i >= 28; --i)
         cardStacks.deck.push(cards[i]);
+    // Uncover top card in deck
+    cards[28].uncover();
 };
