@@ -4,6 +4,9 @@ export class Card {
     // Visual fields
     element;
     isCovered = false;
+    // Used for event handlers
+    movingStackElem = null;
+    clickOffset = null; // The extra offset of a click's position relative to the top-left of the element itself
     constructor(suit, value) {
         this.suit = suit;
         this.value = value;
@@ -29,26 +32,30 @@ export class Card {
     bindEvents() {
         // Click events
         let originalParent = null;
-        let movingStackElem = null;
         $(this.element).on("mousedown", e => {
             if (this.isCovered)
                 return; // Ignore clicks on covered elements
             // Determine where the card is
             const jParent = $(originalParent = this.element.parentElement);
-            if (jParent.hasClass("column")) {
-                // On board
-                console.log("BOARD");
+            if (jParent.hasClass("column")) { // On board
+                // Store click offset
+                const elemPos = $(this.element).offset();
+                this.clickOffset = { "x": elemPos.left - e.clientX, "y": elemPos.top - e.clientY };
                 // Create moveable stack
-                movingStackElem = $($.parseHTML(`<div id="moving-stack"></div>`))[0];
+                this.movingStackElem = $($.parseHTML(`<div id="moving-stack"></div>`))[0];
                 // Grab children
-                movingStackElem.appendChild(this.element);
+                $(this.movingStackElem).append(this.element);
                 let nextSibling = this.element.nextElementSibling;
                 while (nextSibling !== null) {
-                    movingStackElem.appendChild(nextSibling);
+                    $(this.movingStackElem).append(nextSibling);
                     nextSibling = nextSibling.nextElementSibling;
                 }
                 // Append moving stack to body
-                $("body").append(movingStackElem);
+                $("body").append(this.movingStackElem);
+                $(window).on("mousemove", e => this.handleMouseMove(e));
+                $(window).on("mouseup", e => this.handleMouseUp(e));
+                // Initially set the stack position
+                this.handleMouseMove(e);
             }
             else if (jParent.hasClass("ace-stack")) {
                 // On ace
@@ -59,5 +66,18 @@ export class Card {
                 console.log("STACK");
             }
         });
+    }
+    // Handles mouse moves on card stacks
+    handleMouseMove(e) {
+        const x = e.pageX + this.clickOffset.x, y = e.pageY + this.clickOffset.y;
+        $(this.movingStackElem).css({ "left": x, "top": y });
+    }
+    // Handles mouse up
+    handleMouseUp(e) {
+        $(this.movingStackElem).remove();
+        this.movingStackElem = this.clickOffset = null;
+        // Disable events
+        $(window).off("mousemove");
+        $(window).off("mouseup");
     }
 }

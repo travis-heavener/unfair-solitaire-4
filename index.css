@@ -39,7 +39,7 @@ html, body {
 
 html { background-color: var(--theme-dark); }
 
-body {
+#main-content {
     /* Force 16/9 */
     width: 100vw;
     height: calc(100vw * 9 / 16);
@@ -179,3 +179,13 @@ body {
 .card.covered > * { display: none; }
 
 .card:not(.covered) { cursor: pointer; }
+
+/**************************** Floating card stack styling ****************************/
+
+#moving-stack {
+    position: absolute;
+}
+
+#moving-stack > .card {
+    position: absolute;
+}
