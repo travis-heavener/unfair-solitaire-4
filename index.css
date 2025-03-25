@@ -61,7 +61,7 @@ body {
     overflow: hidden;
 }
 
-/* Upper content styling */
+/**************************** Upper content styling ****************************/
 #upper-content {
     display: flex;
     align-items: center;
@@ -70,7 +70,9 @@ body {
     background-color: var(--theme-darker);
 }
 
-.ace-spot {
+.ace-spot,
+.deck-empty-spot,
+.deck-spot {
     position: relative;
     width: var(--card-width);
     height: var(--card-height);
@@ -83,17 +85,23 @@ body {
     font-size: var(--card-height);
 }
 
-.ace-spot:not(:last-child) {
-    /* Align to same spacing as columns */
+/* Align to same spacing as columns */
+.ace-spot,
+.deck-empty-spot {
     margin-right: calc((100% - 7 * var(--card-width)) / 6);
 }
 
 .ace-spot:nth-child(1) { background-image: url("/res/hearts-icon-dark.png"); }
 .ace-spot:nth-child(2) { background-image: url("/res/diamonds-icon-dark.png"); }
 .ace-spot:nth-child(3) { background-image: url("/res/clubs-icon.png"); }
-.ace-spot:nth-child(4) { background-image: url("/res/spades-icon.png"); }
+.ace-spot:nth-child(4) {
+    background-image: url("/res/spades-icon.png");
+    margin-right: calc((100% - 7 * var(--card-width)) / 3 + var(--card-width));
+}
 
-/* Column styling */
+.deck-spot { background-image: url("/res/deck-cycle-icon.png"); background-size: 50%; }
+
+/**************************** Column styling ****************************/
 #board-content {
     display: flex;
     flex: 3;
@@ -115,7 +123,7 @@ body {
     margin-top: calc(-0.75 * var(--card-height));
 }
 
-/* Card styling */
+/**************************** Card styling ****************************/
 .card {
     position: relative;
     width: var(--card-width);
