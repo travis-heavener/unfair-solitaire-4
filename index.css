@@ -177,3 +177,5 @@ body {
 
 .card.covered { background: url("/res/card-texture.png") repeat; }
 .card.covered > * { display: none; }
+
+.card:not(.covered) { cursor: pointer; }
