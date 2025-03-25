@@ -70,9 +70,15 @@ body {
     background-color: var(--theme-darker);
 }
 
-.ace-spot,
-.deck-empty-spot,
-.deck-spot {
+.ace-stack,
+#deck-empty-stack,
+#deck-stack {
+    --border-width: 0.025em;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     position: relative;
     width: var(--card-width);
     height: var(--card-height);
@@ -80,26 +86,33 @@ body {
     background: var(--theme-light) center / 33% no-repeat;
     background-blend-mode: overlay, darken;
 
-    border: 0.025em solid var(--theme-lighter);
+    border: var(--border-width) solid var(--theme-lighter);
     border-radius: 0.11em;
     font-size: var(--card-height);
 }
 
 /* Align to same spacing as columns */
-.ace-spot,
-.deck-empty-spot {
+.ace-stack,
+#deck-empty-stack {
     margin-right: calc((100% - 7 * var(--card-width)) / 6);
 }
 
-.ace-spot:nth-child(1) { background-image: url("/res/hearts-icon-dark.png"); }
-.ace-spot:nth-child(2) { background-image: url("/res/diamonds-icon-dark.png"); }
-.ace-spot:nth-child(3) { background-image: url("/res/clubs-icon.png"); }
-.ace-spot:nth-child(4) {
+/* Add images */
+.ace-stack:nth-child(1) { background-image: url("/res/hearts-icon-dark.png"); }
+.ace-stack:nth-child(2) { background-image: url("/res/diamonds-icon-dark.png"); }
+.ace-stack:nth-child(3) { background-image: url("/res/clubs-icon.png"); }
+.ace-stack:nth-child(4) {
     background-image: url("/res/spades-icon.png");
     margin-right: calc((100% - 7 * var(--card-width)) / 3 + var(--card-width));
 }
 
-.deck-spot { background-image: url("/res/deck-cycle-icon.png"); background-size: 50%; }
+#deck-stack { background-image: url("/res/deck-cycle-icon.png"); background-size: 50%; }
+
+/* Adjust placement of deck stacks */
+#deck-empty-stack > .card,
+#deck-stack > .card {
+    position: absolute;
+}
 
 /**************************** Column styling ****************************/
 #board-content {
