@@ -51,7 +51,6 @@ export class Card {
     // Event bindings
     bindEvents() {
         // Click events
-        let originalParent = null;
         $(this.element).on("mousedown", e => {
             if (this.isCovered)
                 return; // Ignore clicks on covered elements
