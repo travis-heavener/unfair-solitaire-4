@@ -87,18 +87,23 @@ export class Card {
         // Check for drop location
         const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
             .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
-        if (collidedElements.length === 0) {
+        if (collidedElements.length === 0 || !canStackOnElem(this, collidedElements[0])) {
             // Return to starting position
-            $(this.originalParent).append(...this.movingStackElem.children);
+            const children = [...this.movingStackElem.children];
+            const startingPos = children.map(child => $(child).offset());
+            // Add to new parent
+            $(this.originalParent).append(...children);
+            // Animate from old to new
+            children.forEach((child, i) => {
+                const bounds = child.getBoundingClientRect();
+                const top = startingPos[i].top - bounds.top;
+                const left = startingPos[i].left - bounds.left;
+                $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 250ms ease" });
+                setTimeout(() => $(child).css({ "--start-top": "", "--start-left": "", "animation": "" }), 250);
+            });
         }
-        else {
-            // Verify the card can be placed
-            if (canStackOnElem(this, collidedElements[0])) { // Can place
-                $(collidedElements[0]).append(...this.movingStackElem.children);
-            }
-            else { // Can't place, so return to starting position
-                $(this.originalParent).append(...this.movingStackElem.children);
-            }
+        else { // Can place
+            $(collidedElements[0]).append(...this.movingStackElem.children);
         }
         // Remove children from moving stack
         this.movingStackElem.innerHTML = "";
