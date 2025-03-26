@@ -50,8 +50,12 @@ export class Card {
     }
     // Used to remove this element from the DOM and prepare for destruction
     remove() {
-        $(this.element).off("mousedown");
+        this.removeEventListeners();
         $(this.element).remove();
+    }
+    // Removes event listeners (for win sequence)
+    removeEventListeners() {
+        $(this.element).off("mousedown");
     }
     // Event bindings
     bindEvents() {

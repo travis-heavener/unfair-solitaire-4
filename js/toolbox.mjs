@@ -142,16 +142,12 @@ export const checkForWinCondition = () => {
         }
     }
     // Handle win by aces
-    if (isWinByAces) {
-        console.log("WIN BY ACES");
-    }
-    // Check for win by kings
-    let isWinByKings = true;
+    if (isWinByAces) // Trigger win sequence
+        return triggerWinSequence("aces");
     // Get all card columns with children
     const columns = [...$(".column")].filter(elem => elem.childElementCount === 13);
-    // Must be 4 columns
-    if (columns.length !== 4)
-        isWinByKings = false;
+    // Check for win by kings
+    let isWinByKings = columns.length === 4;
     // Check each column
     for (let i = 0; i < 4 && isWinByKings; ++i) {
         // Check each card
@@ -177,7 +173,50 @@ export const checkForWinCondition = () => {
             }
         }
     }
-    if (isWinByKings) {
-        console.log("WIN BY KINGS");
+    if (isWinByKings) // Trigger win sequence
+        return triggerWinSequence("kings");
+};
+// Used to trigger a win sequence
+export const triggerWinSequence = (causedBy) => {
+    // Unbind card events to lock gameplay
+    for (let i = 0; i < cards.length; ++i)
+        cards[i].removeEventListeners();
+    // Animate each card
+    let cardLocations = [];
+    if (causedBy === "aces")
+        cardLocations.push(...$(".ace-stack"));
+    else
+        cardLocations.push(...[...$(".column")].filter(elem => elem.hasChildNodes()));
+    // Get children in order going across
+    const children = [];
+    let cardChildrenBuf = cardLocations.map(c => [...c.children]); // Array of all children to remove
+    while (cardChildrenBuf.length) {
+        for (let i = 0; i < cardChildrenBuf.length; ++i)
+            children.push(cardChildrenBuf[i].pop());
+        // Remove empty card locations
+        cardChildrenBuf = cardChildrenBuf.filter(arr => arr.length);
+    }
+    // Animate each layer of cards
+    for (let i = 0; i < children.length; ++i) {
+        // Queue child
+        setTimeout(() => {
+            const elem = children[i];
+            const { top, left } = $(elem).offset(); // Grab offset before removing from old parent
+            // Pop bottom element
+            $(elem).remove();
+            $("body").append(elem);
+            // Determine horizontal end position on bottom
+            const endLeftPerc = 25 + ~~(Math.random() * 50);
+            // Set animation
+            $(elem).css({
+                "opacity": "0",
+                "position": "absolute",
+                "zIndex": (children.length - i) + 999999,
+                "--start-top": top + "px",
+                "--start-left": left + "px",
+                "--end-left": `calc(${endLeftPerc}% - var(--card-width) / 2)`,
+                "animation": `cardEndAnimation 1s cubic-bezier(.81,0,1,1) 1`
+            });
+        }, i * 100);
     }
 };

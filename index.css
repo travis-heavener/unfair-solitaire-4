@@ -240,3 +240,20 @@ html {
         z-index: 999999;
     }
 }
+
+/* Card animation on win condition */
+@keyframes cardEndAnimation {
+    from {
+        top: var(--start-top);
+        left: var(--start-left);
+        opacity: 1;
+        transform: scale(1);
+    }
+    25% { top: calc(var(--start-top) - 25%); }
+    to {
+        top: 100%;
+        left: var(--end-left);
+        opacity: 1;
+        transform: scale(2);
+    }
+}
