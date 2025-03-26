@@ -3,7 +3,7 @@ import { Card, SuitType, ValueType } from "./card.mjs";
 
 // Used to generate a new array of cards
 const SUITS: SuitType[] = ["hearts", "diamonds", "spades", "clubs"];
-const VALUES: ValueType[] = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+const VALUES: ValueType[] = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 export const generateCards = (cards: Card[]) => {
     for (let s = 0; s < 4; ++s)
         for (let v = 0; v < 13; ++v)
@@ -54,5 +54,44 @@ export const uncoverTopOfColumn = (colNum: number) => {
     if (column.lastChild !== null) {
         const index = parseInt( $(column.lastChild).attr("data-index") );
         cards[index].uncover();
+    }
+};
+
+// Returns either red or black based on the SuitType
+const getColorFromSuit = (suit: SuitType): "red" | "black" => (suit === "hearts" || suit === "diamonds") ? "red" : "black";
+
+// Returns true if the card can be stacked on the given element, false otherwise
+export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
+    if ($(elem).hasClass("ace-stack")) { // Handle ace stack
+        // Check if there aren't any cards
+        if (elem.childElementCount === 0) return card.getValue() === "A";
+
+        // Check top card
+        const index = parseInt( $(elem.lastChild).attr("data-index") );
+        
+        // Force to be same suit
+        if (cards[index].getSuit() !== card.getSuit()) return false;
+        
+        // Force top card value to be 1 less than this card
+        const existingValue = cards[index].getValue();
+        const newValue = card.getValue();
+
+        return (VALUES.indexOf(existingValue) === (VALUES.indexOf(newValue) - 1));
+    } else { // Handle column
+        // Check if there aren't any cards
+        if (elem.childElementCount === 0) return card.getValue() === "K";
+
+        const index = parseInt( $(elem.lastChild).attr("data-index") );
+        const existingColor = getColorFromSuit(cards[index].getSuit());
+        const newColor = getColorFromSuit(card.getSuit());
+
+        // Force to be different colors
+        if (newColor === existingColor) return false;
+
+        // Force top card value to be 1 more than this card
+        const existingValue = cards[index].getValue();
+        const newValue = card.getValue();
+
+        return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue));
     }
 };

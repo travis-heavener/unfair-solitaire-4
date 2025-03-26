@@ -1,4 +1,4 @@
-import { uncoverTopOfColumn } from "./toolbox.mjs";
+import { canStackOnElem, uncoverTopOfColumn } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -27,6 +27,8 @@ export class Card {
     }
     // Getters
     getElement() { return this.element; }
+    getValue() { return this.value; }
+    getSuit() { return this.suit; }
     // Visual modifiers
     uncover() {
         this.isCovered = false;
@@ -85,11 +87,17 @@ export class Card {
         const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
             .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
         if (collidedElements.length === 0) {
-            // Return to starting position - TODO
+            // Return to starting position
             $(this.originalParent).append(...this.movingStackElem.children);
         }
         else {
-            $(collidedElements[0]).append(...this.movingStackElem.children);
+            // Verify the card can be placed
+            if (canStackOnElem(this, collidedElements[0])) { // Can place
+                $(collidedElements[0]).append(...this.movingStackElem.children);
+            }
+            else { // Can't place, so return to starting position
+                $(this.originalParent).append(...this.movingStackElem.children);
+            }
         }
         // Remove children from moving stack
         this.movingStackElem.innerHTML = "";
