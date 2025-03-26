@@ -184,6 +184,6 @@ html { background-color: var(--theme-dark); }
     position: absolute;
 }
 
-#moving-stack > .card {
-    position: absolute;
+#moving-stack > .card:not(:first-child) {
+    margin-top: calc(-0.85 * var(--card-height));
 }
