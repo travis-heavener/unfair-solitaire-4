@@ -47,7 +47,7 @@ export const uncoverTopOfColumn = (colNum) => {
     const column = $(".column")[colNum - 1];
     if (column.lastChild !== null) {
         const index = parseInt($(column.lastChild).attr("data-index"));
-        cards[index].uncover();
+        cards[index].uncover(true);
     }
 };
 // Returns either red or black based on the SuitType
@@ -105,3 +105,8 @@ export const cycleDeckToNext = () => {
         $(emptyDeck).append(cards[index].getElement());
     }
 };
+// Returns true if user inputs are locked due to animation, false otherwise
+let _isAnimLocked = false;
+export const areInputsLockedByAnim = () => _isAnimLocked;
+export const lockInputsForAnim = () => _isAnimLocked = true;
+export const unlockInputsForAnim = () => _isAnimLocked = false;

@@ -190,3 +190,13 @@ html { background-color: var(--theme-dark); }
 #moving-stack > .card:not(:first-child) {
     margin-top: calc(-0.85 * var(--card-height));
 }
+
+/**************************** Animation keyframes ****************************/
+
+/* Called twice--once before flipping card, and once after (reversed) */
+@keyframes uncoverCard {
+    0%, 100% { transform: scale(1, 1) }
+    50% { transform: scale(0, 1.25) }
+}
+
+@keyframes deckCycleCardFlip {}

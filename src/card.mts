@@ -9,11 +9,11 @@ export class Card {
     private suit: SuitType;
     private value: ValueType;
 
-    private _index: Number; // The corresponding index of this card in the global cards array
+    private _index: number; // The corresponding index of this card in the global cards array
 
     // Visual fields
     private element: HTMLElement;
-    private isCovered: Boolean = false;
+    private isCovered: boolean = false;
 
     // Used for event handlers
     private originalParent: HTMLElement = null; // The previous parent from before the move occured
@@ -37,7 +37,7 @@ export class Card {
     }
 
     // Call immediately after shuffling to update index
-    setIndex(index: Number) {
+    setIndex(index: number) {
         this._index = index;
         $(this.element).attr("data-index", "" + this._index);
     }
@@ -48,9 +48,19 @@ export class Card {
     getSuit(): SuitType { return this.suit; }
 
     // Visual modifiers
-    uncover() {
+    uncover(doAnimation: boolean=false) {
+        if (!this.isCovered) return;
+
         this.isCovered = false;
-        $(this.element).removeClass("covered");
+
+        // Play uncover animation
+        if (doAnimation) {
+            $(this.element).css({"animation": `uncoverCard 220ms`}); // Queue animation
+            setTimeout(() => $(this.element).removeClass("covered"), 110); // Uncover halfway through
+            setTimeout(() => $(this.element).css("animation", ""), 220); // Remove animation after complete to prevent re-executing
+        } else {
+            $(this.element).removeClass("covered");
+        }
     }
 
     cover() {

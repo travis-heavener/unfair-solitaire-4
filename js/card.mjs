@@ -30,9 +30,19 @@ export class Card {
     getValue() { return this.value; }
     getSuit() { return this.suit; }
     // Visual modifiers
-    uncover() {
+    uncover(doAnimation = false) {
+        if (!this.isCovered)
+            return;
         this.isCovered = false;
-        $(this.element).removeClass("covered");
+        // Play uncover animation
+        if (doAnimation) {
+            $(this.element).css({ "animation": `uncoverCard 220ms` }); // Queue animation
+            setTimeout(() => $(this.element).removeClass("covered"), 110); // Uncover halfway through
+            setTimeout(() => $(this.element).css("animation", ""), 220); // Remove animation after complete to prevent re-executing
+        }
+        else {
+            $(this.element).removeClass("covered");
+        }
     }
     cover() {
         this.isCovered = true;
