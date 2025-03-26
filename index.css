@@ -15,7 +15,7 @@
     --theme-black: #111;
     --theme-white: #eaeaea;
 
-    --card-height: min(20vh, calc(100vw * 9 / 16 * 0.20));
+    --card-height: min(17vh, calc(100vw * 9 / 16 * 0.17));
     --card-width: calc(var(--card-height) * 0.75);
 }
 
