@@ -81,6 +81,6 @@ export const canStackOnElem = (card, elem) => {
         // Force top card value to be 1 more than this card
         const existingValue = cards[index].getValue();
         const newValue = card.getValue();
-        return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue));
+        return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue)) || (existingValue === "2" && newValue === "A");
     }
 };

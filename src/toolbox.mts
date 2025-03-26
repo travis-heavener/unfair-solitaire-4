@@ -92,6 +92,6 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         const existingValue = cards[index].getValue();
         const newValue = card.getValue();
 
-        return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue));
+        return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue)) || (existingValue === "2" && newValue === "A");
     }
 };
