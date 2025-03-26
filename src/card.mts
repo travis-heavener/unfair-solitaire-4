@@ -55,7 +55,7 @@ export class Card {
 
             // Determine where the card is
             const jParent = $(originalParent = this.element.parentElement);
-            if (jParent.hasClass("column")) { // On board
+            if (jParent.hasClass("column") || jParent.hasClass("ace-stack")) { // On board
                 // Store click offset
                 const elemPos = $(this.element).offset();
                 this.clickOffset = {"x": elemPos.left - e.clientX, "y": elemPos.top - e.clientY};
@@ -82,9 +82,6 @@ export class Card {
 
                 // Initially set the stack position
                 this.handleMouseMove(e);
-            } else if (jParent.hasClass("ace-stack")) {
-                // On ace TODO
-                console.log("ACE");
             } else if (jParent.is("#deck-empty-stack")) {
                 // On stack TODO
                 console.log("STACK");
@@ -113,7 +110,7 @@ export class Card {
             $(collidedElements[0]).append( ...this.movingStackElem.children );
         } else if ($(collidedElements[0]).hasClass("ace-stack")) {
             // Dragging to ace - TODO
-            console.log("DROPPED ON ACE");
+            $(collidedElements[0]).append( ...this.movingStackElem.children );
         }
 
         // Reset moving stack element

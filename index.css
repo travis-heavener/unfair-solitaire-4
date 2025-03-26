@@ -105,6 +105,7 @@ html { background-color: var(--theme-dark); }
 #deck-stack { background-image: url("/res/deck-cycle-icon.png"); background-size: 50%; }
 
 /* Adjust placement of deck stacks */
+.ace-stack > .card,
 #deck-empty-stack > .card,
 #deck-stack > .card {
     position: absolute;
