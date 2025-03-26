@@ -36,7 +36,10 @@ html, body {
     height: 100%;
 }
 
-html { background-color: var(--theme-dark); }
+html {
+    background-color: var(--theme-dark);
+    overflow: hidden;
+}
 
 #main-content {
     /* Force 16/9 */
