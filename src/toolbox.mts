@@ -126,8 +126,45 @@ export const cycleDeckToNext = () => {
     }
 };
 
-// Returns true if user inputs are locked due to animation, false otherwise
-let _isAnimLocked = false;
-export const areInputsLockedByAnim = (): boolean => _isAnimLocked;
-export const lockInputsForAnim = () => _isAnimLocked = true;
-export const unlockInputsForAnim = () => _isAnimLocked = false;
+// Returns true if a win condition is met, false otherwise
+export const checkForWinCondition = () => {
+    // Check for all cards stacked on aces
+    const aceStacks = [...$(".ace-stack")];
+    let isWinByAces = true;
+
+    for (let i = 0; i < aceStacks.length && isWinByAces; ++i) {
+        if (aceStacks[i].childElementCount !== 13) {
+            isWinByAces = false;
+            break;
+        }
+
+        // Grab the suit from the ace
+        let suit: SuitType;
+
+        // Check each child
+        for (let c = 0; c < aceStacks[i].childElementCount && isWinByAces; ++c) {
+            const index = parseInt( $(aceStacks[i].children[c]).attr("data-index") );
+
+            // Verify value is correct
+            if (c !== VALUES.indexOf( cards[index].getValue() )) {
+                isWinByAces = false;
+                break;
+            }
+
+            // Verify the suit is correct
+            if (c === 0) {
+                suit = cards[index].getSuit();
+            } else if (cards[index].getSuit() !== suit) {
+                isWinByAces = false;
+                break;
+            }
+        }
+    }
+
+    // Handle win by aces
+    if (isWinByAces) {
+        console.log("WIN BY ACES");
+    }
+
+    // Base case
+};

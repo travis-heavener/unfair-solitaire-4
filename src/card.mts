@@ -1,4 +1,4 @@
-import { canStackOnElem, uncoverTopOfColumn } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, uncoverTopOfColumn } from "./toolbox.mjs";
 
 export type SuitType = "hearts" | "diamonds" | "spades" | "clubs";
 export type ValueType = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "Joker";
@@ -157,5 +157,8 @@ export class Card {
         // Disable events
         $(window).off("mousemove");
         $(window).off("mouseup");
+
+        // Check for win condition
+        checkForWinCondition();
     }
 }
