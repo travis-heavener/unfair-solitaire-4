@@ -247,8 +247,11 @@ export const triggerWinSequence = (causedBy: "aces" | "kings") => {
                 "--start-top": top + "px",
                 "--start-left": left + "px",
                 "--end-left": `calc(${endLeftPerc}% - var(--card-width) / 2)`,
-                "animation": `cardEndAnimation 1s cubic-bezier(.81,0,1,1) 1`
+                "animation": "cardEndAnimation 1s cubic-bezier(.81,0,1,1) 1"
             });
         }, i * 100);
     }
+
+    // Fade in win screen
+    setTimeout(() => $("#win-container").css("display", "flex"), children.length * 100 + 500);
 };

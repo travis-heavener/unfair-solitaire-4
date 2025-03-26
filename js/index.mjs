@@ -3,11 +3,15 @@ $(() => {
     // Load events
     // Bind cycle deck to deck-stack
     $("#deck-stack").on("click", () => cycleDeckToNext());
+    // Bind play again button
+    $("#play-again-btn").on("click", () => startGame());
     // Start game
     startGame();
 });
 // Invoke to start the game
 const startGame = () => {
+    // Hide win screen
+    $("#win-container").css("display", "");
     // Clear board
     while (cards.length)
         cards.pop().remove();

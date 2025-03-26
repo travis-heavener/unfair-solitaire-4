@@ -11,6 +11,8 @@
     --theme-lighter: #22a322;
     --theme-light: #28b028;
 
+    --theme-red-lighter: #e33;
+    --theme-red-darker: #aa0808;
     --theme-red: #c11;
     --theme-black: #111;
     --theme-white: #eaeaea;
@@ -185,13 +187,52 @@ html {
 
 /**************************** Floating card stack styling ****************************/
 
-#moving-stack {
-    position: absolute;
-}
+#moving-stack { position: absolute; }
 
 #moving-stack > .card:not(:first-child) {
     margin-top: calc(-0.85 * var(--card-height));
 }
+
+/**************************** Win container ****************************/
+
+#win-container {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #0008;
+
+    animation: fadeIn 500ms linear;
+}
+
+#win-container > h1 {
+    color: var(--theme-white);
+    text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
+    font: 700 calc(0.75 * var(--card-width))/1.5 "Signika Negative", sans-serif;
+}
+
+#win-container > button {
+    margin-bottom: 2em;
+    padding: 0.33em 0.5em;
+
+    background-color: var(--theme-red);
+    border: none;
+    border-radius: 0.4em;
+    color: var(--theme-white);
+    font: 600 calc(0.3 * var(--card-width)) "Signika Negative", sans-serif;
+
+    cursor: pointer;
+    transition: 0.1s background-color;
+}
+
+#win-container > button:hover { background-color: var(--theme-red-lighter); }
+#win-container > button:active { background-color: var(--theme-red-darker); }
 
 /**************************** Animation keyframes ****************************/
 
@@ -256,4 +297,9 @@ html {
         opacity: 1;
         transform: scale(2);
     }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
