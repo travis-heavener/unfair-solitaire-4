@@ -68,39 +68,47 @@ export class Card {
         $(this.element).addClass("covered");
     }
 
+    // Used to remove this element from the DOM and prepare for destruction
+    remove() {
+        $(this.element).off("mousedown");
+        $(this.element).remove();
+    }
+
     // Event bindings
     private bindEvents() {
-        // Click events
-        $(this.element).on("mousedown", e => {
-            if (this.isCovered) return; // Ignore clicks on covered elements
+        $(this.element).on("mousedown", e => this.handleMouseDown(e));
+    }
 
-            // Store click offset
-            const elemPos = $(this.element).offset();
-            this.clickOffset = {"x": elemPos.left - e.clientX, "y": elemPos.top - e.clientY};
+    // Handles mouse down events on the card
+    private handleMouseDown(e: JQuery.MouseDownEvent) {
+        if (this.isCovered) return; // Ignore clicks on covered elements
 
-            // Create moveable stack
-            this.originalParent = this.element.parentElement;
-            this.movingStackElem = $($.parseHTML( `<div id="moving-stack"></div>` ))[0] as any;
+        // Store click offset
+        const elemPos = $(this.element).offset();
+        this.clickOffset = {"x": elemPos.left - e.clientX, "y": elemPos.top - e.clientY};
 
-            // Grab children
-            const children: HTMLElement[] = [this.element];
-            let nextSibling = this.element.nextElementSibling as HTMLElement;
-            while (nextSibling !== null) {
-                children.push(nextSibling);
-                nextSibling = nextSibling.nextElementSibling as HTMLElement;
-            }
+        // Create moveable stack
+        this.originalParent = this.element.parentElement;
+        this.movingStackElem = $($.parseHTML( `<div id="moving-stack"></div>` ))[0] as any;
 
-            // Append to new moving stack
-            children.forEach(child => $(this.movingStackElem).append(child));
+        // Grab children
+        const children: HTMLElement[] = [this.element];
+        let nextSibling = this.element.nextElementSibling as HTMLElement;
+        while (nextSibling !== null) {
+            children.push(nextSibling);
+            nextSibling = nextSibling.nextElementSibling as HTMLElement;
+        }
 
-            // Append moving stack to body
-            $("body").append(this.movingStackElem);
-            $(window).on("mousemove", e => this.handleMouseMove(e));
-            $(window).on("mouseup", e => this.handleMouseUp(e));
+        // Append to new moving stack
+        children.forEach(child => $(this.movingStackElem).append(child));
 
-            // Initially set the stack position
-            this.handleMouseMove(e);
-        });
+        // Append moving stack to body
+        $("body").append(this.movingStackElem);
+        $(window).on("mousemove", e => this.handleMouseMove(e));
+        $(window).on("mouseup", e => this.handleMouseUp(e));
+
+        // Initially set the stack position
+        this.handleMouseMove(e);
     }
 
     // Handles mouse moves on card stacks

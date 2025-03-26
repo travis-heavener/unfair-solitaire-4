@@ -9,6 +9,8 @@ $(() => {
 // Invoke to start the game
 const startGame = () => {
     // Clear board
+    while (cards.length)
+        cards.pop().remove();
     // Generate cards
     generateCards(cards);
     // Fill columns
@@ -25,3 +27,5 @@ const startGame = () => {
     for (let i = 51; i >= 28; --i)
         cardStacks.deck.push(cards[i]);
 };
+// Expose globally
+globalThis.restartGame = startGame;
