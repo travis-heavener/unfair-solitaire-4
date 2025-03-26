@@ -199,4 +199,29 @@ html { background-color: var(--theme-dark); }
     50% { transform: scale(0, 1.25) }
 }
 
-@keyframes deckCycleCardFlip {}
+@keyframes cycleCardFromDeck {
+    from {
+        right: calc(-1.5* var(--card-width) - 0.025* var(--card-height));
+        transform: scale(1, 1);
+        z-index: 999999;
+    }
+    50% {
+        transform: scale(0, 1.1);
+    }
+    to {
+        right: 0;
+        transform: scale(1, 1);
+        z-index: 999999;
+    }
+}
+
+@keyframes moveCardBackToDeck {
+    from {
+        left: calc(-1.5* var(--card-width) - 0.025* var(--card-height));
+        z-index: 999999;
+    }
+    to {
+        left: 0;
+        z-index: 999999;
+    }
+}

@@ -90,19 +90,25 @@ export const cycleDeckToNext = () => {
     const deck = $("#deck-stack")[0];
     const emptyDeck = $("#deck-empty-stack")[0];
     if (deck.childElementCount === 0) { // Move all cards back from the empty deck
-        //
         [...emptyDeck.children].reverse().forEach(elem => {
             // Get card
             const index = parseInt($(elem).attr("data-index"));
             cards[index].cover();
             $(deck).append(elem);
         });
+        // Animate top card, all others will just snap over
+        $(deck.firstChild).css("animation", "moveCardBackToDeck 100ms linear");
+        setTimeout(() => $(deck.firstChild).css("animation", ""), 100); // Remove animation after complete to prevent re-executing
     }
     else {
         // Move the top card over
         const index = parseInt($(deck.lastChild).attr("data-index"));
-        cards[index].uncover(); // Uncover the card
-        $(emptyDeck).append(cards[index].getElement());
+        const elem = cards[index].getElement();
+        $(emptyDeck).append(elem);
+        // Start animation
+        $(elem).css("animation", "cycleCardFromDeck 100ms linear");
+        setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
+        setTimeout(() => $(elem).css("animation", ""), 100); // Remove animation after complete to prevent re-executing
     }
 };
 // Returns true if user inputs are locked due to animation, false otherwise

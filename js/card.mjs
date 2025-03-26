@@ -36,7 +36,7 @@ export class Card {
         this.isCovered = false;
         // Play uncover animation
         if (doAnimation) {
-            $(this.element).css({ "animation": `uncoverCard 220ms` }); // Queue animation
+            $(this.element).css("animation", "uncoverCard 220ms linear"); // Queue animation
             setTimeout(() => $(this.element).removeClass("covered"), 110); // Uncover halfway through
             setTimeout(() => $(this.element).css("animation", ""), 220); // Remove animation after complete to prevent re-executing
         }
