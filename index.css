@@ -111,6 +111,9 @@ html { background-color: var(--theme-dark); }
     position: absolute;
 }
 
+#deck-stack { cursor: pointer; }
+#deck-stack > .card { pointer-events: none; }
+
 /**************************** Column styling ****************************/
 #board-content {
     display: flex;

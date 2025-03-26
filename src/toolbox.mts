@@ -95,3 +95,25 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue)) || (existingValue === "2" && newValue === "A");
     }
 };
+
+// Cycles to the next card in the deck
+export const cycleDeckToNext = () => {
+    // Check if the deck is empty
+    const deck = $("#deck-stack")[0];
+    const emptyDeck = $("#deck-empty-stack")[0];
+
+    if (deck.childElementCount === 0) { // Move all cards back from the empty deck
+        //
+        [...emptyDeck.children].reverse().forEach(elem => {
+            // Get card
+            const index = parseInt( $(elem).attr("data-index") );
+            cards[index].cover();
+            $(deck).append(elem);
+        });
+    } else {
+        // Move the top card over
+        const index = parseInt( $(deck.lastChild).attr("data-index") );
+        cards[index].uncover(); // Uncover the card
+        $(emptyDeck).append(cards[index].getElement());
+    }
+};

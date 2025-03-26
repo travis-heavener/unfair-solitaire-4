@@ -1,6 +1,9 @@
-import { cards, cardStacks, generateCards } from "./toolbox.mjs";
+import { cards, cardStacks, cycleDeckToNext, generateCards } from "./toolbox.mjs";
 $(() => {
     // Load events
+    // Bind cycle deck to deck-stack
+    $("#deck-stack").on("click", () => cycleDeckToNext());
+    // Start game
     startGame();
 });
 // Invoke to start the game
