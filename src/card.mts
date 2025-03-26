@@ -12,6 +12,7 @@ export class Card {
     private isCovered: Boolean = false;
 
     // Used for event handlers
+    private originalParent: HTMLElement = null; // The previous parent from before the move occured
     private movingStackElem: HTMLElement = null;
     private clickOffset: Point = null; // The extra offset of a click's position relative to the top-left of the element itself
 
@@ -60,16 +61,19 @@ export class Card {
                 this.clickOffset = {"x": elemPos.left - e.clientX, "y": elemPos.top - e.clientY};
 
                 // Create moveable stack
+                this.originalParent = this.element.parentElement;
                 this.movingStackElem = $($.parseHTML( `<div id="moving-stack"></div>` ))[0] as any;
 
                 // Grab children
-                $(this.movingStackElem).append(this.element);
-
-                let nextSibling = this.element.nextElementSibling;
+                const children: HTMLElement[] = [this.element];
+                let nextSibling = this.element.nextElementSibling as HTMLElement;
                 while (nextSibling !== null) {
-                    $(this.movingStackElem).append(nextSibling);
-                    nextSibling = nextSibling.nextElementSibling;
+                    children.push(nextSibling);
+                    nextSibling = nextSibling.nextElementSibling as HTMLElement;
                 }
+
+                // Append to new moving stack
+                children.forEach(child => $(this.movingStackElem).append(child));
 
                 // Append moving stack to body
                 $("body").append(this.movingStackElem);
@@ -79,10 +83,10 @@ export class Card {
                 // Initially set the stack position
                 this.handleMouseMove(e);
             } else if (jParent.hasClass("ace-stack")) {
-                // On ace
+                // On ace TODO
                 console.log("ACE");
             } else if (jParent.is("#deck-empty-stack")) {
-                // On stack
+                // On stack TODO
                 console.log("STACK");
             }
         });
@@ -96,8 +100,25 @@ export class Card {
 
     // Handles mouse up
     private handleMouseUp(e: JQuery.MouseUpEvent) {
+        // Check for drop location
+        const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
+            .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
+
+        if (collidedElements.length === 0) {
+            // Return to starting position - TODO
+            $(this.originalParent).append( ...this.movingStackElem.children );
+            console.log("DROPPED NOWHERE");
+        } else if ($(collidedElements[0]).hasClass("column")) {
+            // Dragging to new column
+            $(collidedElements[0]).append( ...this.movingStackElem.children );
+        } else if ($(collidedElements[0]).hasClass("ace-stack")) {
+            // Dragging to ace - TODO
+            console.log("DROPPED ON ACE");
+        }
+
+        // Reset moving stack element
         $(this.movingStackElem).remove();
-        this.movingStackElem = this.clickOffset = null;
+        this.originalParent = this.movingStackElem = this.clickOffset = null;
 
         // Disable events
         $(window).off("mousemove");

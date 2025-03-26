@@ -5,6 +5,7 @@ export class Card {
     element;
     isCovered = false;
     // Used for event handlers
+    originalParent = null; // The previous parent from before the move occured
     movingStackElem = null;
     clickOffset = null; // The extra offset of a click's position relative to the top-left of the element itself
     constructor(suit, value) {
@@ -42,14 +43,17 @@ export class Card {
                 const elemPos = $(this.element).offset();
                 this.clickOffset = { "x": elemPos.left - e.clientX, "y": elemPos.top - e.clientY };
                 // Create moveable stack
+                this.originalParent = this.element.parentElement;
                 this.movingStackElem = $($.parseHTML(`<div id="moving-stack"></div>`))[0];
                 // Grab children
-                $(this.movingStackElem).append(this.element);
+                const children = [this.element];
                 let nextSibling = this.element.nextElementSibling;
                 while (nextSibling !== null) {
-                    $(this.movingStackElem).append(nextSibling);
+                    children.push(nextSibling);
                     nextSibling = nextSibling.nextElementSibling;
                 }
+                // Append to new moving stack
+                children.forEach(child => $(this.movingStackElem).append(child));
                 // Append moving stack to body
                 $("body").append(this.movingStackElem);
                 $(window).on("mousemove", e => this.handleMouseMove(e));
@@ -58,11 +62,11 @@ export class Card {
                 this.handleMouseMove(e);
             }
             else if (jParent.hasClass("ace-stack")) {
-                // On ace
+                // On ace TODO
                 console.log("ACE");
             }
             else if (jParent.is("#deck-empty-stack")) {
-                // On stack
+                // On stack TODO
                 console.log("STACK");
             }
         });
@@ -74,8 +78,25 @@ export class Card {
     }
     // Handles mouse up
     handleMouseUp(e) {
+        // Check for drop location
+        const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
+            .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
+        if (collidedElements.length === 0) {
+            // Return to starting position - TODO
+            $(this.originalParent).append(...this.movingStackElem.children);
+            console.log("DROPPED NOWHERE");
+        }
+        else if ($(collidedElements[0]).hasClass("column")) {
+            // Dragging to new column
+            $(collidedElements[0]).append(...this.movingStackElem.children);
+        }
+        else if ($(collidedElements[0]).hasClass("ace-stack")) {
+            // Dragging to ace - TODO
+            console.log("DROPPED ON ACE");
+        }
+        // Reset moving stack element
         $(this.movingStackElem).remove();
-        this.movingStackElem = this.clickOffset = null;
+        this.originalParent = this.movingStackElem = this.clickOffset = null;
         // Disable events
         $(window).off("mousemove");
         $(window).off("mouseup");
