@@ -145,5 +145,39 @@ export const checkForWinCondition = () => {
     if (isWinByAces) {
         console.log("WIN BY ACES");
     }
-    // Base case
+    // Check for win by kings
+    let isWinByKings = true;
+    // Get all card columns with children
+    const columns = [...$(".column")].filter(elem => elem.childElementCount === 13);
+    // Must be 4 columns
+    if (columns.length !== 4)
+        isWinByKings = false;
+    // Check each column
+    for (let i = 0; i < 4 && isWinByKings; ++i) {
+        // Check each card
+        let lastSuitColor;
+        for (let c = 0; c < 13 && isWinByKings; ++c) {
+            const index = parseInt($(columns[i].children[c]).attr("data-index"));
+            // Check value
+            if (12 - VALUES.indexOf(cards[index].getValue()) !== c) {
+                isWinByKings = false;
+                console.log("fuck");
+                break;
+            }
+            // Check suit
+            if (c === 0) {
+                lastSuitColor = getColorFromSuit(cards[index].getSuit());
+            }
+            else if (lastSuitColor === getColorFromSuit(cards[index].getSuit())) {
+                isWinByKings = false;
+                break;
+            }
+            else { // Update last suit color
+                lastSuitColor = getColorFromSuit(cards[index].getSuit());
+            }
+        }
+    }
+    if (isWinByKings) {
+        console.log("WIN BY KINGS");
+    }
 };
