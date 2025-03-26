@@ -1,25 +1,4 @@
-import { CardStack } from "./card-stack.mjs";
-import { generateCards } from "./toolbox.mjs";
-// Store a reference to all card stacks in the game
-const cardStacks = {
-    "aces": [
-        new CardStack($(".ace-stack")[0], "ace"),
-        new CardStack($(".ace-stack")[1], "ace"),
-        new CardStack($(".ace-stack")[2], "ace"),
-        new CardStack($(".ace-stack")[3], "ace")
-    ],
-    "emptyDeck": new CardStack($("#deck-empty-stack")[0], "empty"),
-    "deck": new CardStack($("#deck-stack")[0], "deck"),
-    "board": [
-        new CardStack($(".column")[0], "board"),
-        new CardStack($(".column")[1], "board"),
-        new CardStack($(".column")[2], "board"),
-        new CardStack($(".column")[3], "board"),
-        new CardStack($(".column")[4], "board"),
-        new CardStack($(".column")[5], "board"),
-        new CardStack($(".column")[6], "board")
-    ]
-};
+import { cards, cardStacks, generateCards } from "./toolbox.mjs";
 $(() => {
     // Load events
     startGame();
@@ -28,7 +7,6 @@ $(() => {
 const startGame = () => {
     // Clear board
     // Generate cards
-    const cards = [];
     generateCards(cards);
     // Fill columns
     for (let c = 0, i = 0; c < 7; ++c) {

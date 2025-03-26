@@ -21,4 +21,8 @@ export class CardStack {
         $(card.getElement()).remove();
         return card;
     }
+    // Returns the very end of the stack
+    end() {
+        return this.children.length === 0 ? null : this.children[this.children.length - 1];
+    }
 }

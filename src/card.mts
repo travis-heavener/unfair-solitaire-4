@@ -1,3 +1,5 @@
+import { uncoverTopOfColumn } from "./toolbox.mjs";
+
 export type SuitType = "hearts" | "diamonds" | "spades" | "clubs";
 export type ValueType = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "Joker";
 
@@ -6,6 +8,8 @@ type Point = { x: number, y: number };
 export class Card {
     private suit: SuitType;
     private value: ValueType;
+
+    private _index: Number; // The corresponding index of this card in the global cards array
 
     // Visual fields
     private element: HTMLElement;
@@ -30,6 +34,12 @@ export class Card {
 
         // Bind events
         this.bindEvents();
+    }
+
+    // Call immediately after shuffling to update index
+    setIndex(index: Number) {
+        this._index = index;
+        $(this.element).attr("data-index", "" + this._index);
     }
 
     // Getters
@@ -104,14 +114,16 @@ export class Card {
         if (collidedElements.length === 0) {
             // Return to starting position - TODO
             $(this.originalParent).append( ...this.movingStackElem.children );
-            console.log("DROPPED NOWHERE");
-        } else if ($(collidedElements[0]).hasClass("column")) {
-            // Dragging to new column
-            $(collidedElements[0]).append( ...this.movingStackElem.children );
-        } else if ($(collidedElements[0]).hasClass("ace-stack")) {
-            // Dragging to ace - TODO
+        } else {
             $(collidedElements[0]).append( ...this.movingStackElem.children );
         }
+
+        // Remove children from moving stack
+        this.movingStackElem.innerHTML = "";
+
+        // Uncover previous card
+        if ($(this.originalParent).hasClass("column"))
+            uncoverTopOfColumn( parseInt( this.originalParent.id.replace("column-", "") ) );
 
         // Reset moving stack element
         $(this.movingStackElem).remove();

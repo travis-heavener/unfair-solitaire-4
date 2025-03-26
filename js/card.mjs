@@ -1,6 +1,8 @@
+import { uncoverTopOfColumn } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
+    _index; // The corresponding index of this card in the global cards array
     // Visual fields
     element;
     isCovered = false;
@@ -17,6 +19,11 @@ export class Card {
         this.cover();
         // Bind events
         this.bindEvents();
+    }
+    // Call immediately after shuffling to update index
+    setIndex(index) {
+        this._index = index;
+        $(this.element).attr("data-index", "" + this._index);
     }
     // Getters
     getElement() { return this.element; }
@@ -80,16 +87,15 @@ export class Card {
         if (collidedElements.length === 0) {
             // Return to starting position - TODO
             $(this.originalParent).append(...this.movingStackElem.children);
-            console.log("DROPPED NOWHERE");
         }
-        else if ($(collidedElements[0]).hasClass("column")) {
-            // Dragging to new column
+        else {
             $(collidedElements[0]).append(...this.movingStackElem.children);
         }
-        else if ($(collidedElements[0]).hasClass("ace-stack")) {
-            // Dragging to ace - TODO
-            $(collidedElements[0]).append(...this.movingStackElem.children);
-        }
+        // Remove children from moving stack
+        this.movingStackElem.innerHTML = "";
+        // Uncover previous card
+        if ($(this.originalParent).hasClass("column"))
+            uncoverTopOfColumn(parseInt(this.originalParent.id.replace("column-", "")));
         // Reset moving stack element
         $(this.movingStackElem).remove();
         this.originalParent = this.movingStackElem = this.clickOffset = null;
