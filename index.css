@@ -172,7 +172,7 @@ html {
     border: none;
 
     color: var(--theme-red);
-    font: 700 calc(0.25 * var(--card-width)) "Signika Negative", sans-serif;
+    font: 700 calc(0.25 * var(--card-width)) "Signika", sans-serif;
     text-shadow: 0.2em 0.2em 0.1em #0003;
 
     cursor: pointer;
@@ -200,7 +200,7 @@ html {
     top: 4%;
     left: 7%;
     color: var(--theme-black);
-    font: 600 0.2em "Signika Negative", sans-serif;
+    font: 600 0.2em "Signika", sans-serif;
     pointer-events: none;
 }
 
@@ -255,7 +255,7 @@ html {
 #win-container > h1 {
     color: var(--theme-white);
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
-    font: 700 calc(0.75 * var(--card-width))/1.5 "Signika Negative", sans-serif;
+    font: 700 calc(0.75 * var(--card-width))/1.5 "Signika", sans-serif;
 }
 
 #win-container > button {
@@ -266,7 +266,7 @@ html {
     border: none;
     border-radius: 0.4em;
     color: var(--theme-white);
-    font: 600 calc(0.3 * var(--card-width)) "Signika Negative", sans-serif;
+    font: 600 calc(0.3 * var(--card-width)) "Signika", sans-serif;
 
     cursor: pointer;
     transition: 0.1s background-color;
