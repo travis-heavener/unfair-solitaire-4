@@ -111,7 +111,7 @@ export class Card {
     handleMouseUp(e) {
         // Check for drop location
         const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
-            .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
+            .filter(elem => $(elem).hasClass("tableau") || $(elem).hasClass("foundation"));
         if (collidedElements.length === 0 || collidedElements[0] === this.originalParent || !canStackOnElem(this, collidedElements[0])) {
             // Return to starting position
             const children = [...this.movingStackElem.children];
@@ -158,8 +158,8 @@ export class Card {
         // Remove children from moving stack
         this.movingStackElem.innerHTML = "";
         // Uncover previous card
-        if ($(this.originalParent).hasClass("column"))
-            uncoverTopOfColumn(parseInt(this.originalParent.id.replace("column-", "")));
+        if ($(this.originalParent).hasClass("tableau"))
+            uncoverTopOfColumn(parseInt(this.originalParent.id.replace("tableau-", "")));
         // Play sound regardless
         playSound("flip");
         // Reset moving stack element

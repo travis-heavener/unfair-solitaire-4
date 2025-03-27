@@ -78,9 +78,9 @@ html {
     background-color: #0002;
 }
 
-.ace-stack,
-#deck-empty-stack,
-#deck-stack {
+.foundation,
+#waste,
+#stock {
     --border-width: 0.025em;
 
     display: flex;
@@ -105,25 +105,25 @@ html {
 }
 
 /* Add images */
-.ace-stack:nth-child(1) { background-image: url("/res/images/hearts-icon-dark.png"); }
-.ace-stack:nth-child(2) { background-image: url("/res/images/diamonds-icon-dark.png"); }
-.ace-stack:nth-child(3) { background-image: url("/res/images/clubs-icon.png"); }
-.ace-stack:nth-child(4) {
+.foundation:nth-child(1) { background-image: url("/res/images/hearts-icon-dark.png"); }
+.foundation:nth-child(2) { background-image: url("/res/images/diamonds-icon-dark.png"); }
+.foundation:nth-child(3) { background-image: url("/res/images/clubs-icon.png"); }
+.foundation:nth-child(4) {
     background-image: url("/res/images/spades-icon.png");
     margin-right: calc(1.75* var(--card-width));
 }
 
-#deck-stack { background-image: url("/res/images/deck-cycle-icon.png"); background-size: 50%; }
+#stock { background-image: url("/res/images/deck-cycle-icon.png"); background-size: 50%; }
 
 /* Adjust placement of deck stacks */
-.ace-stack > .card,
-#deck-empty-stack > .card,
-#deck-stack > .card {
+.foundation > .card,
+#waste > .card,
+#stock > .card {
     position: absolute;
 }
 
-#deck-stack { cursor: pointer; }
-#deck-stack > .card { pointer-events: none; }
+#stock { cursor: pointer; }
+#stock > .card { pointer-events: none; }
 
 /**************************** Column styling ****************************/
 #board-content {
@@ -133,18 +133,18 @@ html {
     justify-content: center;
 }
 
-.column {
+.tableau {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: calc(1.5 * var(--card-width));
 }
 
-.column > .card:not(:first-child) {
+.tableau > .card:not(:first-child) {
     margin-top: calc(-0.85 * var(--card-height));
 }
 
-.column > .card:not(.covered) ~ .card:not(.covered) {
+.tableau > .card:not(.covered) ~ .card:not(.covered) {
     margin-top: calc(-0.75 * var(--card-height));
 }
 

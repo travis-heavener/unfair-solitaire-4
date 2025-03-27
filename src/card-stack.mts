@@ -1,6 +1,6 @@
 import { Card } from "./card.mjs";
 
-type StackType = "ace" | "deck" | "empty" | "board";
+type StackType = "foundation" | "stock" | "waste" | "tableau";
 
 export class CardStack {
     private container: HTMLElement; // The container element that contains the card stack

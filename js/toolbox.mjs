@@ -23,31 +23,31 @@ const shuffleCards = (arr) => {
 // Store a reference to all card stacks in the game
 export const cardStacks = {
     "aces": [
-        new CardStack($(".ace-stack")[0], "ace"),
-        new CardStack($(".ace-stack")[1], "ace"),
-        new CardStack($(".ace-stack")[2], "ace"),
-        new CardStack($(".ace-stack")[3], "ace")
+        new CardStack($(".foundation")[0], "foundation"),
+        new CardStack($(".foundation")[1], "foundation"),
+        new CardStack($(".foundation")[2], "foundation"),
+        new CardStack($(".foundation")[3], "foundation")
     ],
-    "emptyDeck": new CardStack($("#deck-empty-stack")[0], "empty"),
-    "deck": new CardStack($("#deck-stack")[0], "deck"),
+    "waste": new CardStack($("#waste")[0], "waste"),
+    "stock": new CardStack($("#stock")[0], "stock"),
     "board": [
-        new CardStack($(".column")[0], "board"),
-        new CardStack($(".column")[1], "board"),
-        new CardStack($(".column")[2], "board"),
-        new CardStack($(".column")[3], "board"),
-        new CardStack($(".column")[4], "board"),
-        new CardStack($(".column")[5], "board"),
-        new CardStack($(".column")[6], "board")
+        new CardStack($(".tableau")[0], "tableau"),
+        new CardStack($(".tableau")[1], "tableau"),
+        new CardStack($(".tableau")[2], "tableau"),
+        new CardStack($(".tableau")[3], "tableau"),
+        new CardStack($(".tableau")[4], "tableau"),
+        new CardStack($(".tableau")[5], "tableau"),
+        new CardStack($(".tableau")[6], "tableau")
     ]
 };
 // Generate and store the cards
 export const cards = [];
 // Returns the numeric card index from an element's data-index attribute
 export const getCardIndexFromElem = (elem) => parseInt(elem.getAttribute("data-index"));
-// Used to uncover the bottom card in a column, if it exists
+// Used to uncover the bottom card in the tableau, if it exists
 export const uncoverTopOfColumn = (colNum) => {
     // Get the index of the top card
-    const column = $(".column")[colNum - 1];
+    const column = $(".tableau")[colNum - 1];
     if (column.lastChild !== null) {
         const index = getCardIndexFromElem(column.lastChild);
         const wasCovered = cards[index].getIsCovered();
@@ -61,7 +61,7 @@ export const uncoverTopOfColumn = (colNum) => {
 const getColorFromSuit = (suit) => (suit === "hearts" || suit === "diamonds") ? "red" : "black";
 // Returns true if the card can be stacked on the given element, false otherwise
 export const canStackOnElem = (card, elem) => {
-    if ($(elem).hasClass("ace-stack")) { // Handle ace stack
+    if ($(elem).hasClass("foundation")) { // Handle ace stack
         // Check if there aren't any cards
         if (elem.childElementCount === 0)
             return card.getValue() === "A";
@@ -97,31 +97,31 @@ export const cycleDeckToNext = () => {
     if (isAnimLocked())
         return;
     // Check if the deck is empty
-    const deck = $("#deck-stack")[0];
-    const emptyDeck = $("#deck-empty-stack")[0];
+    const stock = $("#stock")[0];
+    const waste = $("#waste")[0];
     // Abort if the deck is empty
-    if (emptyDeck.childElementCount === 0 && deck.childElementCount === 0)
+    if (waste.childElementCount === 0 && stock.childElementCount === 0)
         return;
     // Lock animations
     lockAnimations();
-    if (deck.childElementCount === 0) { // Move all cards back from the empty deck
+    if (stock.childElementCount === 0) { // Move all cards back from the empty deck
         // Play sound
         playSound("shuffle");
-        [...emptyDeck.children].forEach(elem => {
+        [...waste.children].forEach(elem => {
             // Get card
             const index = getCardIndexFromElem(elem);
             cards[index].cover();
             // Get current screen position
             const offset = $(elem).offset();
             const lastPosition = { "x": offset.left, "y": offset.top };
-            $(deck).prepend(elem);
+            $(stock).prepend(elem);
             // Update history state
-            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "originalParent": emptyDeck, "lastPosition": lastPosition });
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "originalParent": waste, "lastPosition": lastPosition });
         });
         // Animate top card, all others will just snap over
-        $(deck.firstChild).css("animation", "moveCardBackToDeck 100ms linear");
+        $(stock.firstChild).css("animation", "moveCardBackToDeck 100ms linear");
         setTimeout(() => {
-            $(deck.firstChild).css("animation", "");
+            $(stock.firstChild).css("animation", "");
             unlockAnimations(); // Unlock animations
         }, 100);
     }
@@ -129,13 +129,13 @@ export const cycleDeckToNext = () => {
         // Play sound
         playSound("flip");
         // Move the top card over
-        const index = getCardIndexFromElem(deck.lastChild);
+        const index = getCardIndexFromElem(stock.lastChild);
         const elem = cards[index].getElement();
         // Get current screen position
         const offset = $(elem).offset();
         const lastPosition = { "x": offset.left, "y": offset.top };
         // Update history state
-        $(emptyDeck).append(elem);
+        $(waste).append(elem);
         // Start animation
         $(elem).css("animation", "cycleCardFromDeck 100ms linear");
         setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
@@ -144,7 +144,7 @@ export const cycleDeckToNext = () => {
             unlockAnimations(); // Unlock animations
         }, 100);
         // Update state
-        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": deck, "lastPosition": lastPosition });
+        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": stock, "lastPosition": lastPosition });
     }
     // Save the history state
     saveHistoryState();
@@ -152,7 +152,7 @@ export const cycleDeckToNext = () => {
 // Returns true if a win condition is met, false otherwise
 export const checkForWinCondition = () => {
     // Check for all cards stacked on aces
-    const aceStacks = [...$(".ace-stack")];
+    const aceStacks = [...$(".foundation")];
     let isWinByAces = true;
     for (let i = 0; i < aceStacks.length && isWinByAces; ++i) {
         if (aceStacks[i].childElementCount !== 13) {
@@ -183,7 +183,7 @@ export const checkForWinCondition = () => {
     if (isWinByAces) // Trigger win sequence
         return triggerWinSequence("aces");
     // Get all card columns with children
-    const columns = [...$(".column")].filter(elem => elem.childElementCount === 13);
+    const columns = [...$(".tableau")].filter(elem => elem.childElementCount === 13);
     // Check for win by kings
     let isWinByKings = columns.length === 4;
     // Check each column
@@ -226,9 +226,9 @@ export const triggerWinSequence = (causedBy) => {
     // Animate each card
     let cardLocations = [];
     if (causedBy === "aces")
-        cardLocations.push(...$(".ace-stack"));
+        cardLocations.push(...$(".foundation"));
     else
-        cardLocations.push(...[...$(".column")].filter(elem => elem.hasChildNodes()));
+        cardLocations.push(...[...$(".tableau")].filter(elem => elem.hasChildNodes()));
     // Get children in order going across
     const children = [];
     let cardChildrenBuf = cardLocations.map(c => [...c.children]); // Array of all children to remove
