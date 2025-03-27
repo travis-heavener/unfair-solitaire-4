@@ -160,6 +160,8 @@ export class Card {
         // Uncover previous card
         if ($(this.originalParent).hasClass("column"))
             uncoverTopOfColumn(parseInt(this.originalParent.id.replace("column-", "")));
+        else
+            playSound("flip"); // Play sound since no card was uncovered
         // Reset moving stack element
         $(this.movingStackElem).remove();
         this.originalParent = this.movingStackElem = this.movingCardOriginalPositions = this.clickOffset = null;
