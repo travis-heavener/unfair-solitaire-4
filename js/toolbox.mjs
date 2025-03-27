@@ -1,6 +1,6 @@
 import { CardStack } from "./card-stack.mjs";
 import { Card } from "./card.mjs";
-const MAX_HISTORY_LENGTH = 20; // The maximum number of history elements
+const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 // Used to generate a new array of cards
 const SUITS = ["hearts", "diamonds", "spades", "clubs"];
 const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -99,6 +99,9 @@ export const cycleDeckToNext = () => {
     // Check if the deck is empty
     const deck = $("#deck-stack")[0];
     const emptyDeck = $("#deck-empty-stack")[0];
+    // Abort if the deck is empty
+    if (emptyDeck.childElementCount === 0 && deck.childElementCount === 0)
+        return;
     // Lock animations
     lockAnimations();
     if (deck.childElementCount === 0) { // Move all cards back from the empty deck

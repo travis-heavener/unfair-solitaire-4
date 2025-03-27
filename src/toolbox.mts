@@ -117,6 +117,9 @@ export const cycleDeckToNext = () => {
     const deck = $("#deck-stack")[0];
     const emptyDeck = $("#deck-empty-stack")[0];
 
+    // Abort if the deck is empty
+    if (emptyDeck.childElementCount === 0 && deck.childElementCount === 0) return;
+
     // Lock animations
     lockAnimations();
 
