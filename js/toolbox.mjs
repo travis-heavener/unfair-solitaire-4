@@ -1,5 +1,6 @@
 import { CardStack } from "./card-stack.mjs";
 import { Card } from "./card.mjs";
+const MAX_HISTORY_LENGTH = 20; // The maximum number of history elements
 // Used to generate a new array of cards
 const SUITS = ["hearts", "diamonds", "spades", "clubs"];
 const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -263,6 +264,9 @@ export const saveHistoryState = () => {
     if (currentHistoryState.length)
         moveHistory.push(currentHistoryState);
     currentHistoryState = []; // Reset history state
+    // Shift the oldest element
+    if (moveHistory.length > MAX_HISTORY_LENGTH)
+        moveHistory.shift();
     console.log(moveHistory);
 };
 // Clears the move history
