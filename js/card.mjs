@@ -130,19 +130,28 @@ export class Card {
             });
         }
         else { // Can place
-            // Update current history state
-            for (let i = 0; i < this.movingStackElem.childElementCount; ++i) {
-                const elem = this.movingStackElem.children[i];
-                const cardIndex = getCardIndexFromElem(elem);
-                // Determine position
-                const lastPosition = this.movingCardOriginalPositions[i];
+            // Determine starting pos
+            const children = [...this.movingStackElem.children];
+            const startingPos = children.map(child => $(child).offset());
+            // Add to new parent
+            $(collidedElements[0]).append(...children);
+            // Update current history state & animate
+            children.forEach((child, i) => {
+                const cardIndex = getCardIndexFromElem(child);
+                // Animate from old to new
+                const bounds = child.getBoundingClientRect();
+                const top = startingPos[i].top - bounds.top;
+                const left = startingPos[i].left - bounds.left;
+                $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 250ms ease" });
+                // Remove the animation after duration
+                setTimeout(() => {
+                    $(child).css({ "--start-top": "", "--start-left": "", "animation": "" });
+                    unlockAnimations(); // Unlock animations
+                }, 250);
                 // Add state
+                const lastPosition = this.movingCardOriginalPositions[i];
                 updateHistoryState({ "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex, "lastPosition": lastPosition });
-            }
-            // Move elements
-            $(collidedElements[0]).append(...this.movingStackElem.children);
-            // Unlock animations
-            unlockAnimations();
+            });
         }
         // Remove children from moving stack
         this.movingStackElem.innerHTML = "";

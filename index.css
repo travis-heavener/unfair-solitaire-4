@@ -313,6 +313,7 @@ html {
     }
 }
 
+/* Used to move a card from a specific point to where it is now */
 @keyframes cardMoveBackToStart {
     from {
         top: var(--start-top);
