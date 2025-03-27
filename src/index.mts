@@ -1,4 +1,4 @@
-import { cards, cardStacks, clearMoveHistory, cycleDeckToNext, generateCards } from "./toolbox.mjs";
+import { cards, cardStacks, clearMoveHistory, cycleDeckToNext, generateCards, undoLastMove } from "./toolbox.mjs";
 
 $(() => {
     // Load events
@@ -8,6 +8,9 @@ $(() => {
 
     // Bind play again button
     $("#play-again-btn").on("click", () => startGame());
+
+    // Bind undo button
+    $("#undo-btn").on("click", () => undoLastMove());
 
     // Start game
     startGame();

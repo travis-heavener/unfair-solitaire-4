@@ -108,6 +108,9 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
 
 // Cycles to the next card in the deck
 export const cycleDeckToNext = () => {
+    // Abort if animating
+    if (isAnimLocked()) return;
+
     // Check if the deck is empty
     const deck = $("#deck-stack")[0];
     const emptyDeck = $("#deck-empty-stack")[0];
@@ -335,4 +338,25 @@ export const undoLastMove = () => {
     if (isAnimLocked()) return;
 
     // Lookup last move
+    if (moveHistory.length === 0) return;
+
+    const lastState = moveHistory.pop();
+
+    // Handle each state change (in reverse order)
+    for (let i = lastState.length-1; i >= 0; --i) {
+        const stateData = lastState[i];
+        const card = cards[stateData.cardIndex];
+
+        // Handle covering/uncovering
+        if (stateData.hasBeenCovered)
+            card.uncover();
+        else if (stateData.hasBeenUncovered)
+            card.cover();
+
+        // Undo move
+        if (stateData.lastParent !== null) {
+            const elem = card.getElement();
+            $(stateData.lastParent).append(elem); // Move to previous parent
+        }
+    }
 };
