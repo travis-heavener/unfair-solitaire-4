@@ -5,9 +5,8 @@
 }
 
 :root {
-    --theme-dark: #197a19;
-    --theme-darker: #198719;
-    --theme-base: #1a901a;
+    --theme-dark: #0f5f0f;
+    --theme-base: #189c18;
     --theme-lighter: #22a322;
     --theme-light: #28b028;
 
@@ -40,6 +39,7 @@ html, body {
 
 html {
     background-color: var(--theme-dark);
+    background-image: url("/res/card-texture.png");
     overflow: hidden;
 }
 
@@ -60,7 +60,11 @@ html {
     right: 0;
     bottom: 0;
 
+    font-size: var(--card-width);
+    box-shadow:  0.1em  0.1em 0.15em #0003 inset,
+                -0.1em -0.1em 0.15em #0003 inset;
     background-color: var(--theme-base);
+    background-image: radial-gradient(#189c18, #0b770b);
 
     overflow: hidden;
 }
@@ -71,7 +75,7 @@ html {
     justify-content: center;
     align-items: center;
     height: calc(1.2 * var(--card-height));
-    background-color: var(--theme-darker);
+    background-color: #0002;
 }
 
 .ace-stack,
@@ -140,6 +144,43 @@ html {
 .column > .card:not(.covered) ~ .card:not(.covered) {
     margin-top: calc(-0.75 * var(--card-height));
 }
+
+/**************************** Controls styling ****************************/
+
+#controls-content {
+    display: flex;
+    column-gap: calc(0.5 * var(--card-width));
+    align-items: center;
+
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    bottom: 0;
+
+    padding: 0.25% 3% 0 3%;
+    height: 8%;
+
+    background-color: #252422;
+    background-image: linear-gradient(#252422, #1b1a19);
+    border-top-left-radius: calc(0.2 * var(--card-width));
+    border-top-right-radius: calc(0.2 * var(--card-width));
+    opacity: 0.9;
+}
+
+#undo-btn {
+    background-color: #0000;
+    border: none;
+
+    color: var(--theme-red);
+    font: 700 calc(0.25 * var(--card-width)) "Signika Negative", sans-serif;
+    text-shadow: 0.2em 0.2em 0.1em #0003;
+
+    cursor: pointer;
+    transition: 0.1s color;
+}
+
+#undo-btn:hover { color: var(--theme-red-lighter); }
+#undo-btn:active { color: var(--theme-red-darker); }
 
 /**************************** Card styling ****************************/
 .card {
