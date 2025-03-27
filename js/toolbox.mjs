@@ -267,10 +267,10 @@ export const triggerWinSequence = (causedBy) => {
     }, children.length * 100 + 500);
 };
 // Locks and unlocks the animation state to prevent events from firing
-let _isAnimLocked = false;
-export const lockAnimations = () => _isAnimLocked = true;
-export const unlockAnimations = () => _isAnimLocked = false;
-export const isAnimLocked = () => _isAnimLocked;
+let animLocks = 0;
+export const lockAnimations = () => void (++animLocks);
+export const unlockAnimations = () => void (animLocks = Math.max(0, animLocks - 1));
+export const isAnimLocked = () => animLocks > 0;
 // The last few moves' data
 const moveHistory = [];
 // The current history data
