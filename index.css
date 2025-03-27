@@ -341,7 +341,9 @@ html {
         opacity: 1;
         transform: scale(1);
     }
-    25% { top: calc(var(--start-top) - 25%); }
+    25% { top: calc(var(--start-top) - 15%); }
+    50% { top: calc(var(--start-top) + 25%); }
+    75% { top: var(--start-top); }
     to {
         top: 100%;
         left: var(--end-left);
