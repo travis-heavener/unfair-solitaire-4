@@ -39,7 +39,7 @@ html, body {
 
 html {
     background-color: var(--theme-dark);
-    background-image: url("/res/card-texture.png");
+    background-image: url("/res/images/card-texture.png");
     overflow: hidden;
 }
 
@@ -105,15 +105,15 @@ html {
 }
 
 /* Add images */
-.ace-stack:nth-child(1) { background-image: url("/res/hearts-icon-dark.png"); }
-.ace-stack:nth-child(2) { background-image: url("/res/diamonds-icon-dark.png"); }
-.ace-stack:nth-child(3) { background-image: url("/res/clubs-icon.png"); }
+.ace-stack:nth-child(1) { background-image: url("/res/images/hearts-icon-dark.png"); }
+.ace-stack:nth-child(2) { background-image: url("/res/images/diamonds-icon-dark.png"); }
+.ace-stack:nth-child(3) { background-image: url("/res/images/clubs-icon.png"); }
 .ace-stack:nth-child(4) {
-    background-image: url("/res/spades-icon.png");
+    background-image: url("/res/images/spades-icon.png");
     margin-right: calc(1.75* var(--card-width));
 }
 
-#deck-stack { background-image: url("/res/deck-cycle-icon.png"); background-size: 50%; }
+#deck-stack { background-image: url("/res/images/deck-cycle-icon.png"); background-size: 50%; }
 
 /* Adjust placement of deck stacks */
 .ace-stack > .card,
@@ -225,12 +225,12 @@ html {
 .card.diamonds > p,
 .card.hearts > p { color: var(--theme-red) }
 
-.card.hearts   { background-image: url("/res/hearts-icon.png");   }
-.card.diamonds { background-image: url("/res/diamonds-icon.png"); }
-.card.clubs    { background-image: url("/res/clubs-icon.png");    }
-.card.spades   { background-image: url("/res/spades-icon.png");   }
+.card.hearts   { background-image: url("/res/images/hearts-icon.png");   }
+.card.diamonds { background-image: url("/res/images/diamonds-icon.png"); }
+.card.clubs    { background-image: url("/res/images/clubs-icon.png");    }
+.card.spades   { background-image: url("/res/images/spades-icon.png");   }
 
-.card.covered { background: url("/res/card-texture.png") repeat; }
+.card.covered { background: url("/res/images/card-texture.png") repeat; }
 .card.covered > * { display: none; }
 
 .card:not(.covered) { cursor: pointer; }
