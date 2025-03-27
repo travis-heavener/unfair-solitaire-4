@@ -153,6 +153,7 @@ html {
 #controls-content {
     display: flex;
     column-gap: calc(0.5 * var(--card-width));
+    justify-content: space-between;
     align-items: center;
 
     position: absolute;
@@ -170,20 +171,25 @@ html {
     opacity: 0.9;
 }
 
+#controls-content > * {
+    font: 700 calc(0.25 * var(--card-width)) "Signika", sans-serif;
+    text-shadow: 0.2em 0.2em 0.1em #0003;
+}
+
 #undo-btn {
     background-color: #0000;
     border: none;
-
     color: var(--theme-red);
-    font: 700 calc(0.25 * var(--card-width)) "Signika", sans-serif;
-    text-shadow: 0.2em 0.2em 0.1em #0003;
-
     cursor: pointer;
     transition: 0.1s color;
 }
 
 #undo-btn:hover { color: var(--theme-red-lighter); }
 #undo-btn:active { color: var(--theme-red-darker); }
+
+#time-display {
+    color: var(--theme-white);
+}
 
 /**************************** Card styling ****************************/
 .card {

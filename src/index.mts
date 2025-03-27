@@ -1,4 +1,4 @@
-import { cards, cardStacks, clearMoveHistory, cycleDeckToNext, generateCards, undoLastMove } from "./toolbox.mjs";
+import { cards, cardStacks, clearMoveHistory, cycleDeckToNext, generateCards, startGameClock, undoLastMove } from "./toolbox.mjs";
 
 $(() => {
     // Load events
@@ -44,6 +44,9 @@ const startGame = () => {
     // Push remaining cards to the deck
     for (let i = 51; i >= 28; --i)
         cardStacks.deck.push(cards[i]);
+
+    // Start clock
+    startGameClock();
 };
 
 // Expose globally

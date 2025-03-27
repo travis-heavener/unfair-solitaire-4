@@ -102,14 +102,14 @@ export const cycleDeckToNext = () => {
     // Lock animations
     lockAnimations();
     if (deck.childElementCount === 0) { // Move all cards back from the empty deck
-        [...emptyDeck.children].reverse().forEach(elem => {
+        [...emptyDeck.children].forEach(elem => {
             // Get card
             const index = getCardIndexFromElem(elem);
             cards[index].cover();
             // Get current screen position
             const offset = $(elem).offset();
             const lastPosition = { "x": offset.left, "y": offset.top };
-            $(deck).append(elem);
+            $(deck).prepend(elem);
             // Update history state
             updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "originalParent": emptyDeck, "lastPosition": lastPosition });
         });
@@ -211,6 +211,8 @@ export const checkForWinCondition = () => {
 export const triggerWinSequence = (causedBy) => {
     // Lock animations
     lockAnimations();
+    // Stop clock
+    stopGameClock();
     // Unbind card events to lock gameplay
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
@@ -290,8 +292,8 @@ export const undoLastMove = () => {
     if (moveHistory.length === 0)
         return;
     const lastState = moveHistory.pop();
-    // Handle each state change (in reverse order)
-    for (let i = lastState.length - 1; i >= 0; --i) {
+    // Handle each state change
+    for (let i = 0; i < lastState.length; ++i) {
         const stateData = lastState[i];
         const card = cards[stateData.cardIndex];
         // Handle covering/uncovering
@@ -323,4 +325,23 @@ export const undoLastMove = () => {
             }, 150);
         }
     }
+};
+// Starts the game clock
+let _clockInterval = null;
+let elapsedSec = 0;
+export const startGameClock = () => {
+    // Stop any running intervals
+    if (_clockInterval !== null)
+        clearInterval(_clockInterval);
+    const jTimeDisplay = $("#time-display");
+    _clockInterval = setInterval(() => {
+        ++elapsedSec;
+        jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
+    }, 1e3);
+};
+// Used to stop the game clock
+export const stopGameClock = () => {
+    clearInterval(_clockInterval);
+    elapsedSec = 0;
+    _clockInterval = null;
 };
