@@ -1,7 +1,7 @@
 import { CardStack } from "./card-stack.mjs";
 import { Card, SuitType, ValueType } from "./card.mjs";
 
-const MAX_HISTORY_LENGTH = 20; // The maximum number of history elements
+const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 
 export type Point = { x: number, y: number };
 
