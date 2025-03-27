@@ -123,12 +123,12 @@ export class Card {
                 const bounds = child.getBoundingClientRect();
                 const top = startingPos[i].top - bounds.top;
                 const left = startingPos[i].left - bounds.left;
-                $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 250ms ease" });
+                $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 150ms ease" });
                 // Remove the animation after duration
                 setTimeout(() => {
                     $(child).css({ "--start-top": "", "--start-left": "", "animation": "" });
                     unlockAnimations(); // Unlock animations
-                }, 250);
+                }, 150);
             });
         }
         else { // Can place
