@@ -121,6 +121,9 @@ export const cycleDeckToNext = () => {
     lockAnimations();
 
     if (deck.childElementCount === 0) { // Move all cards back from the empty deck
+        // Play sound
+        playSound("shuffle");
+
         [...emptyDeck.children].forEach(elem => {
             // Get card
             const index = getCardIndexFromElem(elem);
@@ -143,6 +146,9 @@ export const cycleDeckToNext = () => {
             unlockAnimations(); // Unlock animations
         }, 100);
     } else {
+        // Play sound
+        playSound("flip");
+
         // Move the top card over
         const index = getCardIndexFromElem(deck.lastChild);
         const elem = cards[index].getElement();
@@ -299,6 +305,9 @@ export const triggerWinSequence = (causedBy: "aces" | "kings") => {
                 "--end-left": `calc(${endLeftPerc}% - var(--card-width) / 2)`,
                 "animation": "cardEndAnimation 1s cubic-bezier(.81,0,1,1) 1"
             });
+
+            // Play sound
+            playSound("flip");
         }, i * 100);
     }
 
@@ -355,6 +364,9 @@ export const undoLastMove = () => {
 
     // Lookup last move
     if (moveHistory.length === 0) return;
+
+    // Play sound
+    playSound("flip");
 
     const lastState = moveHistory.pop();
 
@@ -419,4 +431,21 @@ export const stopGameClock = () => {
     clearInterval(_clockInterval);
     elapsedSec = 0;
     _clockInterval = null;
+};
+
+// Sound functionality below
+const createAudioElem = (src: string): HTMLAudioElement => {
+    const elem = document.createElement("AUDIO") as HTMLAudioElement;
+    elem.src = `/res/audio/${src}.mp3`;
+    return elem;
+};
+const sounds = {
+    "shuffle": [ createAudioElem("shuffle1"), createAudioElem("shuffle2") ],
+    "flip": [ createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4") ]
+};
+
+// Plays a random sound from the category provided
+export const playSound = (name: "shuffle" | "flip") => {
+    sounds[name][ ~~(Math.random() * sounds[name].length) ].play()
+        .catch(() => {}); // Ignore, cannot autoplay
 };

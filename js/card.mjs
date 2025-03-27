@@ -1,4 +1,4 @@
-import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -35,6 +35,8 @@ export class Card {
     uncover(doAnimation = false) {
         if (!this.isCovered)
             return;
+        // Play sound
+        playSound("flip");
         this.isCovered = false;
         // Play uncover animation
         if (doAnimation) {

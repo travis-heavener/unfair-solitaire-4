@@ -1,4 +1,4 @@
-import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, Point, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, playSound, Point, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 
 export type SuitType = "hearts" | "diamonds" | "spades" | "clubs";
 export type ValueType = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "Joker";
@@ -50,6 +50,9 @@ export class Card {
     // Visual modifiers
     uncover(doAnimation: boolean=false) {
         if (!this.isCovered) return;
+
+        // Play sound
+        playSound("flip");
 
         this.isCovered = false;
 
