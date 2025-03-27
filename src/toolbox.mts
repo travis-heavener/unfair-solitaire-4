@@ -3,6 +3,8 @@ import { Card, SuitType, ValueType } from "./card.mjs";
 
 const MAX_HISTORY_LENGTH = 20; // The maximum number of history elements
 
+export type Point = { x: number, y: number };
+
 // Used to generate a new array of cards
 const SUITS: SuitType[] = ["hearts", "diamonds", "spades", "clubs"];
 const VALUES: ValueType[] = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -63,7 +65,7 @@ export const uncoverTopOfColumn = (colNum: number) => {
 
         // Update state
         if (wasCovered)
-            updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "lastParent": null });
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
     }
 };
 
@@ -123,10 +125,15 @@ export const cycleDeckToNext = () => {
             // Get card
             const index = getCardIndexFromElem(elem);
             cards[index].cover();
+
+            // Get current screen position
+            const offset = $(elem).offset();
+            const lastPosition: Point = { "x": offset.left, "y": offset.top };
+
             $(deck).append(elem);
 
             // Update history state
-            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "lastParent": emptyDeck });
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "originalParent": emptyDeck, "lastPosition": lastPosition });
         });
 
         // Animate top card, all others will just snap over
@@ -139,6 +146,12 @@ export const cycleDeckToNext = () => {
         // Move the top card over
         const index = getCardIndexFromElem(deck.lastChild);
         const elem = cards[index].getElement();
+
+        // Get current screen position
+        const offset = $(elem).offset();
+        const lastPosition: Point = { "x": offset.left, "y": offset.top };
+
+        // Update history state
         $(emptyDeck).append(elem);
 
         // Start animation
@@ -150,7 +163,7 @@ export const cycleDeckToNext = () => {
         }, 100);
 
         // Update state
-        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "lastParent": deck });
+        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": deck, "lastPosition": lastPosition });
     }
 
     // Save the history state
@@ -303,9 +316,10 @@ export const isAnimLocked = () => _isAnimLocked;
 
 export type HistoryData = {
     cardIndex: number,
+    lastPosition: Point, // The previous absolute page position of the element, only for those that have moved
     hasBeenUncovered: boolean, // Whether or not the card was uncovered in this move
     hasBeenCovered: boolean, // Whether or not the card was covered in this move
-    lastParent: HTMLElement | null // The previous parent element for a move
+    originalParent: HTMLElement | null // The previous parent element for a move
 };
 type HistoryStateType = HistoryData[];
 
@@ -326,7 +340,6 @@ export const saveHistoryState = () => {
 
     // Shift the oldest element
     if (moveHistory.length > MAX_HISTORY_LENGTH) moveHistory.shift();
-    console.log(moveHistory);
 };
 
 // Clears the move history
@@ -354,9 +367,32 @@ export const undoLastMove = () => {
             card.cover();
 
         // Undo move
-        if (stateData.lastParent !== null) {
+        if (stateData.originalParent !== null) {
             const elem = card.getElement();
-            $(stateData.lastParent).append(elem); // Move to previous parent
+
+            // Calculate offset
+            const offset = $(elem).offset();
+            const top = offset.top - stateData.lastPosition.y;
+            const left = offset.left - stateData.lastPosition.x;
+
+            // Move to previous parent
+            $(stateData.originalParent).append(elem);
+
+            // Lock animations
+            lockAnimations();
+
+            // Handle animation to previous position
+            $(elem).css({
+                "--start-top": top + "px",
+                "--start-left": left + "px",
+                "animation": "cardMoveBackToStart 150ms ease 1"
+            });
+
+            // Remove animation once done
+            setTimeout(() => {
+                $(elem).css({"position": "", "--start-top": "", "--start-left": "", "animation": ""});
+                unlockAnimations(); // Unlock animations
+            }, 150);
         }
     }
 };

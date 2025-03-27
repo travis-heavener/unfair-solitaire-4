@@ -99,6 +99,9 @@ html {
     border: var(--border-width) solid var(--theme-lighter);
     border-radius: 0.11em;
     font-size: var(--card-height);
+
+    /* Hide border on  */
+    &:has(:first-child) { border: none; }
 }
 
 /* Add images */

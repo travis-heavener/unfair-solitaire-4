@@ -1,9 +1,7 @@
-import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, Point, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 
 export type SuitType = "hearts" | "diamonds" | "spades" | "clubs";
 export type ValueType = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "Joker";
-
-type Point = { x: number, y: number };
 
 export class Card {
     private suit: SuitType;
@@ -18,6 +16,7 @@ export class Card {
     // Used for event handlers
     private originalParent: HTMLElement = null; // The previous parent from before the move occured
     private movingStackElem: HTMLElement = null;
+    private movingCardOriginalPositions: Point[] = null; // The previous absolute page positions of each card (for history state)
     private clickOffset: Point = null; // The extra offset of a click's position relative to the top-left of the element itself
 
     constructor(suit: SuitType, value: ValueType) {
@@ -110,6 +109,12 @@ export class Card {
             nextSibling = nextSibling.nextElementSibling as HTMLElement;
         }
 
+        // Store original position
+        this.movingCardOriginalPositions = children.map((child): Point => {
+            const { top, left } = $(child).offset();
+            return { "x": left, "y": top };
+        });
+
         // Append to new moving stack
         children.forEach(child => $(this.movingStackElem).append(child));
 
@@ -137,7 +142,7 @@ export class Card {
         const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
             .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
 
-        if (collidedElements.length === 0 || !canStackOnElem(this, collidedElements[0] as HTMLElement)) {
+        if (collidedElements.length === 0 || collidedElements[0] === this.originalParent || !canStackOnElem(this, collidedElements[0] as HTMLElement)) {
             // Return to starting position
             const children = [...this.movingStackElem.children];
             const startingPos = children.map(child => $(child).offset());
@@ -161,8 +166,14 @@ export class Card {
         } else { // Can place
             // Update current history state
             for (let i = 0; i < this.movingStackElem.childElementCount; ++i) {
-                const cardIndex = getCardIndexFromElem(this.movingStackElem.children[i]);
-                updateHistoryState({ "lastParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex });
+                const elem = this.movingStackElem.children[i];
+                const cardIndex = getCardIndexFromElem(elem);
+
+                // Determine position
+                const lastPosition: Point = this.movingCardOriginalPositions[i];
+
+                // Add state
+                updateHistoryState({ "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex, "lastPosition": lastPosition });
             }
 
             // Move elements
@@ -181,7 +192,7 @@ export class Card {
 
         // Reset moving stack element
         $(this.movingStackElem).remove();
-        this.originalParent = this.movingStackElem = this.clickOffset = null;
+        this.originalParent = this.movingStackElem = this.movingCardOriginalPositions = this.clickOffset = null;
 
         // Disable events
         $(window).off("mousemove");

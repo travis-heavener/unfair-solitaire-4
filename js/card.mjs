@@ -9,6 +9,7 @@ export class Card {
     // Used for event handlers
     originalParent = null; // The previous parent from before the move occured
     movingStackElem = null;
+    movingCardOriginalPositions = null; // The previous absolute page positions of each card (for history state)
     clickOffset = null; // The extra offset of a click's position relative to the top-left of the element itself
     constructor(suit, value) {
         this.suit = suit;
@@ -83,6 +84,11 @@ export class Card {
             children.push(nextSibling);
             nextSibling = nextSibling.nextElementSibling;
         }
+        // Store original position
+        this.movingCardOriginalPositions = children.map((child) => {
+            const { top, left } = $(child).offset();
+            return { "x": left, "y": top };
+        });
         // Append to new moving stack
         children.forEach(child => $(this.movingStackElem).append(child));
         // Append moving stack to body
@@ -104,7 +110,7 @@ export class Card {
         // Check for drop location
         const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
             .filter(elem => $(elem).hasClass("column") || $(elem).hasClass("ace-stack"));
-        if (collidedElements.length === 0 || !canStackOnElem(this, collidedElements[0])) {
+        if (collidedElements.length === 0 || collidedElements[0] === this.originalParent || !canStackOnElem(this, collidedElements[0])) {
             // Return to starting position
             const children = [...this.movingStackElem.children];
             const startingPos = children.map(child => $(child).offset());
@@ -126,8 +132,12 @@ export class Card {
         else { // Can place
             // Update current history state
             for (let i = 0; i < this.movingStackElem.childElementCount; ++i) {
-                const cardIndex = getCardIndexFromElem(this.movingStackElem.children[i]);
-                updateHistoryState({ "lastParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex });
+                const elem = this.movingStackElem.children[i];
+                const cardIndex = getCardIndexFromElem(elem);
+                // Determine position
+                const lastPosition = this.movingCardOriginalPositions[i];
+                // Add state
+                updateHistoryState({ "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex, "lastPosition": lastPosition });
             }
             // Move elements
             $(collidedElements[0]).append(...this.movingStackElem.children);
@@ -141,7 +151,7 @@ export class Card {
             uncoverTopOfColumn(parseInt(this.originalParent.id.replace("column-", "")));
         // Reset moving stack element
         $(this.movingStackElem).remove();
-        this.originalParent = this.movingStackElem = this.clickOffset = null;
+        this.originalParent = this.movingStackElem = this.movingCardOriginalPositions = this.clickOffset = null;
         // Disable events
         $(window).off("mousemove");
         $(window).off("mouseup");

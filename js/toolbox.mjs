@@ -54,7 +54,7 @@ export const uncoverTopOfColumn = (colNum) => {
         cards[index].uncover(true); // Handles locking the animation on its own
         // Update state
         if (wasCovered)
-            updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "lastParent": null });
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
     }
 };
 // Returns either red or black based on the SuitType
@@ -106,9 +106,12 @@ export const cycleDeckToNext = () => {
             // Get card
             const index = getCardIndexFromElem(elem);
             cards[index].cover();
+            // Get current screen position
+            const offset = $(elem).offset();
+            const lastPosition = { "x": offset.left, "y": offset.top };
             $(deck).append(elem);
             // Update history state
-            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "lastParent": emptyDeck });
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "originalParent": emptyDeck, "lastPosition": lastPosition });
         });
         // Animate top card, all others will just snap over
         $(deck.firstChild).css("animation", "moveCardBackToDeck 100ms linear");
@@ -121,6 +124,10 @@ export const cycleDeckToNext = () => {
         // Move the top card over
         const index = getCardIndexFromElem(deck.lastChild);
         const elem = cards[index].getElement();
+        // Get current screen position
+        const offset = $(elem).offset();
+        const lastPosition = { "x": offset.left, "y": offset.top };
+        // Update history state
         $(emptyDeck).append(elem);
         // Start animation
         $(elem).css("animation", "cycleCardFromDeck 100ms linear");
@@ -130,7 +137,7 @@ export const cycleDeckToNext = () => {
             unlockAnimations(); // Unlock animations
         }, 100);
         // Update state
-        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "lastParent": deck });
+        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": deck, "lastPosition": lastPosition });
     }
     // Save the history state
     saveHistoryState();
@@ -270,7 +277,6 @@ export const saveHistoryState = () => {
     // Shift the oldest element
     if (moveHistory.length > MAX_HISTORY_LENGTH)
         moveHistory.shift();
-    console.log(moveHistory);
 };
 // Clears the move history
 export const clearMoveHistory = () => { while (moveHistory.length)
@@ -294,9 +300,27 @@ export const undoLastMove = () => {
         else if (stateData.hasBeenUncovered)
             card.cover();
         // Undo move
-        if (stateData.lastParent !== null) {
+        if (stateData.originalParent !== null) {
             const elem = card.getElement();
-            $(stateData.lastParent).append(elem); // Move to previous parent
+            // Calculate offset
+            const offset = $(elem).offset();
+            const top = offset.top - stateData.lastPosition.y;
+            const left = offset.left - stateData.lastPosition.x;
+            // Move to previous parent
+            $(stateData.originalParent).append(elem);
+            // Lock animations
+            lockAnimations();
+            // Handle animation to previous position
+            $(elem).css({
+                "--start-top": top + "px",
+                "--start-left": left + "px",
+                "animation": "cardMoveBackToStart 150ms ease 1"
+            });
+            // Remove animation once done
+            setTimeout(() => {
+                $(elem).css({ "position": "", "--start-top": "", "--start-left": "", "animation": "" });
+                unlockAnimations(); // Unlock animations
+            }, 150);
         }
     }
 };
