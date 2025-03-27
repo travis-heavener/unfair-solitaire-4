@@ -47,7 +47,7 @@ export const uncoverTopOfColumn = (colNum) => {
     const column = $(".column")[colNum - 1];
     if (column.lastChild !== null) {
         const index = parseInt($(column.lastChild).attr("data-index"));
-        cards[index].uncover(true);
+        cards[index].uncover(true); // Handles locking the animation on its own
     }
 };
 // Returns either red or black based on the SuitType
@@ -89,6 +89,8 @@ export const cycleDeckToNext = () => {
     // Check if the deck is empty
     const deck = $("#deck-stack")[0];
     const emptyDeck = $("#deck-empty-stack")[0];
+    // Lock animations
+    lockAnimations();
     if (deck.childElementCount === 0) { // Move all cards back from the empty deck
         [...emptyDeck.children].reverse().forEach(elem => {
             // Get card
@@ -98,7 +100,10 @@ export const cycleDeckToNext = () => {
         });
         // Animate top card, all others will just snap over
         $(deck.firstChild).css("animation", "moveCardBackToDeck 100ms linear");
-        setTimeout(() => $(deck.firstChild).css("animation", ""), 100); // Remove animation after complete to prevent re-executing
+        setTimeout(() => {
+            $(deck.firstChild).css("animation", "");
+            unlockAnimations(); // Unlock animations
+        }, 100);
     }
     else {
         // Move the top card over
@@ -108,7 +113,10 @@ export const cycleDeckToNext = () => {
         // Start animation
         $(elem).css("animation", "cycleCardFromDeck 100ms linear");
         setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
-        setTimeout(() => $(elem).css("animation", ""), 100); // Remove animation after complete to prevent re-executing
+        setTimeout(() => {
+            $(elem).css("animation", "");
+            unlockAnimations(); // Unlock animations
+        }, 100);
     }
 };
 // Returns true if a win condition is met, false otherwise
@@ -178,6 +186,8 @@ export const checkForWinCondition = () => {
 };
 // Used to trigger a win sequence
 export const triggerWinSequence = (causedBy) => {
+    // Lock animations
+    lockAnimations();
     // Unbind card events to lock gameplay
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
@@ -220,5 +230,13 @@ export const triggerWinSequence = (causedBy) => {
         }, i * 100);
     }
     // Fade in win screen
-    setTimeout(() => $("#win-container").css("display", "flex"), children.length * 100 + 500);
+    setTimeout(() => {
+        $("#win-container").css("display", "flex");
+        unlockAnimations(); // Unlock animations
+    }, children.length * 100 + 500);
 };
+// Locks and unlocks the animation state to prevent events from firing
+let _isAnimLocked = false;
+export const lockAnimations = () => _isAnimLocked = true;
+export const unlockAnimations = () => _isAnimLocked = false;
+export const isAnimLocked = () => _isAnimLocked;

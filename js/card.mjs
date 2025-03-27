@@ -1,4 +1,4 @@
-import { canStackOnElem, checkForWinCondition, uncoverTopOfColumn } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, lockAnimations, uncoverTopOfColumn, unlockAnimations } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -36,9 +36,13 @@ export class Card {
         this.isCovered = false;
         // Play uncover animation
         if (doAnimation) {
+            lockAnimations(); // Lock out animations
             $(this.element).css("animation", "uncoverCard 220ms linear"); // Queue animation
             setTimeout(() => $(this.element).removeClass("covered"), 110); // Uncover halfway through
-            setTimeout(() => $(this.element).css("animation", ""), 220); // Remove animation after complete to prevent re-executing
+            setTimeout(() => {
+                $(this.element).css("animation", "");
+                unlockAnimations(); // Unlock animations
+            }, 220);
         }
         else {
             $(this.element).removeClass("covered");
@@ -86,6 +90,8 @@ export class Card {
         $(window).on("mouseup", e => this.handleMouseUp(e));
         // Initially set the stack position
         this.handleMouseMove(e);
+        // Lock animations
+        lockAnimations();
     }
     // Handles mouse moves on card stacks
     handleMouseMove(e) {
@@ -109,11 +115,17 @@ export class Card {
                 const top = startingPos[i].top - bounds.top;
                 const left = startingPos[i].left - bounds.left;
                 $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 250ms ease" });
-                setTimeout(() => $(child).css({ "--start-top": "", "--start-left": "", "animation": "" }), 250);
+                // Remove the animation after duration
+                setTimeout(() => {
+                    $(child).css({ "--start-top": "", "--start-left": "", "animation": "" });
+                    unlockAnimations(); // Unlock animations
+                }, 250);
             });
         }
         else { // Can place
             $(collidedElements[0]).append(...this.movingStackElem.children);
+            // Unlock animations
+            unlockAnimations();
         }
         // Remove children from moving stack
         this.movingStackElem.innerHTML = "";
