@@ -1,4 +1,3 @@
-import { CardStack } from "./card-stack.mjs";
 import { Card } from "./card.mjs";
 const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 // Used to generate a new array of cards
@@ -19,26 +18,6 @@ const shuffleCards = (arr) => {
         const newPos = ~~(Math.random() * currentPos--);
         [arr[currentPos], arr[newPos]] = [arr[newPos], arr[currentPos]];
     }
-};
-// Store a reference to all card stacks in the game
-export const cardStacks = {
-    "aces": [
-        new CardStack($(".foundation")[0], "foundation"),
-        new CardStack($(".foundation")[1], "foundation"),
-        new CardStack($(".foundation")[2], "foundation"),
-        new CardStack($(".foundation")[3], "foundation")
-    ],
-    "waste": new CardStack($("#waste")[0], "waste"),
-    "stock": new CardStack($("#stock")[0], "stock"),
-    "board": [
-        new CardStack($(".tableau")[0], "tableau"),
-        new CardStack($(".tableau")[1], "tableau"),
-        new CardStack($(".tableau")[2], "tableau"),
-        new CardStack($(".tableau")[3], "tableau"),
-        new CardStack($(".tableau")[4], "tableau"),
-        new CardStack($(".tableau")[5], "tableau"),
-        new CardStack($(".tableau")[6], "tableau")
-    ]
 };
 // Generate and store the cards
 export const cards = [];

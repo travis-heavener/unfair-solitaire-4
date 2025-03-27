@@ -1,4 +1,4 @@
-import { cards, cardStacks, clearMoveHistory, cycleDeckToNext, generateCards, startGameClock, undoLastMove } from "./toolbox.mjs";
+import { cards, clearMoveHistory, cycleDeckToNext, generateCards, startGameClock, undoLastMove } from "./toolbox.mjs";
 
 $(() => {
     // Load events
@@ -31,19 +31,19 @@ const startGame = () => {
     generateCards(cards);
 
     // Fill tableau
+    const jTalbleaus = [...$(".tableau")];
+    const jStock = $("#stock");
     for (let c = 0, i = 0; c < 7; ++c) {
         for (let r = 0; r < c+1; ++r) {
             const card = cards[i++];
-            cardStacks.board[c].push( card );
-
-            // Uncover top card
-            if (r === c) card.uncover();
+            jTalbleaus[c].append( card.getElement() );
+            if (r === c) card.uncover(); // Uncover top card
         }
     }
 
     // Push remaining cards to the deck
     for (let i = 51; i >= 28; --i)
-        cardStacks.stock.push(cards[i]);
+        jStock.append(cards[i].getElement());
 
     // Start clock
     startGameClock();
