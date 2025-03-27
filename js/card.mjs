@@ -1,4 +1,4 @@
-import { canStackOnElem, checkForWinCondition, lockAnimations, uncoverTopOfColumn, unlockAnimations } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -29,6 +29,7 @@ export class Card {
     getElement() { return this.element; }
     getValue() { return this.value; }
     getSuit() { return this.suit; }
+    getIsCovered() { return this.isCovered; }
     // Visual modifiers
     uncover(doAnimation = false) {
         if (!this.isCovered)
@@ -67,7 +68,7 @@ export class Card {
     }
     // Handles mouse down events on the card
     handleMouseDown(e) {
-        if (this.isCovered)
+        if (this.isCovered || isAnimLocked())
             return; // Ignore clicks on covered elements
         // Store click offset
         const elemPos = $(this.element).offset();
@@ -123,6 +124,12 @@ export class Card {
             });
         }
         else { // Can place
+            // Update current history state
+            for (let i = 0; i < this.movingStackElem.childElementCount; ++i) {
+                const cardIndex = getCardIndexFromElem(this.movingStackElem.children[i]);
+                updateHistoryState({ "lastParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex });
+            }
+            // Move elements
             $(collidedElements[0]).append(...this.movingStackElem.children);
             // Unlock animations
             unlockAnimations();
@@ -138,6 +145,8 @@ export class Card {
         // Disable events
         $(window).off("mousemove");
         $(window).off("mouseup");
+        // Save the current history state
+        saveHistoryState();
         // Check for win condition
         checkForWinCondition();
     }

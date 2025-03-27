@@ -1,4 +1,4 @@
-import { canStackOnElem, checkForWinCondition, lockAnimations, uncoverTopOfColumn, unlockAnimations } from "./toolbox.mjs";
+import { canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 
 export type SuitType = "hearts" | "diamonds" | "spades" | "clubs";
 export type ValueType = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "Joker";
@@ -46,6 +46,7 @@ export class Card {
     getElement(): HTMLElement { return this.element; }
     getValue(): ValueType { return this.value; }
     getSuit(): SuitType { return this.suit; }
+    getIsCovered(): boolean { return this.isCovered; }
 
     // Visual modifiers
     uncover(doAnimation: boolean=false) {
@@ -91,7 +92,7 @@ export class Card {
 
     // Handles mouse down events on the card
     private handleMouseDown(e: JQuery.MouseDownEvent) {
-        if (this.isCovered) return; // Ignore clicks on covered elements
+        if (this.isCovered || isAnimLocked()) return; // Ignore clicks on covered elements
 
         // Store click offset
         const elemPos = $(this.element).offset();
@@ -158,6 +159,13 @@ export class Card {
                 }, 250);
             });
         } else { // Can place
+            // Update current history state
+            for (let i = 0; i < this.movingStackElem.childElementCount; ++i) {
+                const cardIndex = getCardIndexFromElem(this.movingStackElem.children[i]);
+                updateHistoryState({ "lastParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex });
+            }
+
+            // Move elements
             $(collidedElements[0]).append( ...this.movingStackElem.children );
 
             // Unlock animations
@@ -178,6 +186,9 @@ export class Card {
         // Disable events
         $(window).off("mousemove");
         $(window).off("mouseup");
+
+        // Save the current history state
+        saveHistoryState();
 
         // Check for win condition
         checkForWinCondition();

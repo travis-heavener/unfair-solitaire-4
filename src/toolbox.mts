@@ -47,13 +47,21 @@ export const cardStacks = {
 // Generate and store the cards
 export const cards: Card[] = [];
 
+// Returns the numeric card index from an element's data-index attribute
+export const getCardIndexFromElem = (elem: any) => parseInt( elem.getAttribute("data-index") );
+
 // Used to uncover the bottom card in a column, if it exists
 export const uncoverTopOfColumn = (colNum: number) => {
     // Get the index of the top card
     const column = $(".column")[colNum-1];
     if (column.lastChild !== null) {
-        const index = parseInt( $(column.lastChild).attr("data-index") );
+        const index = getCardIndexFromElem(column.lastChild);
+        const wasCovered = cards[index].getIsCovered();
         cards[index].uncover(true); // Handles locking the animation on its own
+
+        // Update state
+        if (wasCovered)
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "lastParent": null });
     }
 };
 
@@ -67,7 +75,7 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         if (elem.childElementCount === 0) return card.getValue() === "A";
 
         // Check top card
-        const index = parseInt( $(elem.lastChild).attr("data-index") );
+        const index = getCardIndexFromElem(elem.lastChild);
         
         // Force to be same suit
         if (cards[index].getSuit() !== card.getSuit()) return false;
@@ -81,7 +89,7 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         // Check if there aren't any cards
         if (elem.childElementCount === 0) return card.getValue() === "K";
 
-        const index = parseInt( $(elem.lastChild).attr("data-index") );
+        const index = getCardIndexFromElem(elem.lastChild);
         const existingColor = getColorFromSuit(cards[index].getSuit());
         const newColor = getColorFromSuit(card.getSuit());
 
@@ -108,9 +116,12 @@ export const cycleDeckToNext = () => {
     if (deck.childElementCount === 0) { // Move all cards back from the empty deck
         [...emptyDeck.children].reverse().forEach(elem => {
             // Get card
-            const index = parseInt( $(elem).attr("data-index") );
+            const index = getCardIndexFromElem(elem);
             cards[index].cover();
             $(deck).append(elem);
+
+            // Update history state
+            updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "lastParent": emptyDeck });
         });
 
         // Animate top card, all others will just snap over
@@ -121,7 +132,7 @@ export const cycleDeckToNext = () => {
         }, 100);
     } else {
         // Move the top card over
-        const index = parseInt( $(deck.lastChild).attr("data-index") );
+        const index = getCardIndexFromElem(deck.lastChild);
         const elem = cards[index].getElement();
         $(emptyDeck).append(elem);
 
@@ -132,7 +143,13 @@ export const cycleDeckToNext = () => {
             $(elem).css("animation", "");
             unlockAnimations(); // Unlock animations
         }, 100);
+
+        // Update state
+        updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "lastParent": deck });
     }
+
+    // Save the history state
+    saveHistoryState();
 };
 
 // Returns true if a win condition is met, false otherwise
@@ -152,7 +169,7 @@ export const checkForWinCondition = () => {
 
         // Check each child
         for (let c = 0; c < aceStacks[i].childElementCount && isWinByAces; ++c) {
-            const index = parseInt( $(aceStacks[i].children[c]).attr("data-index") );
+            const index = getCardIndexFromElem(aceStacks[i].children[c]);
 
             // Verify value is correct
             if (c !== VALUES.indexOf( cards[index].getValue() )) {
@@ -185,7 +202,7 @@ export const checkForWinCondition = () => {
         // Check each card
         let lastSuitColor: "red" | "black";
         for (let c = 0; c < 13 && isWinByKings; ++c) {
-            const index = parseInt( $(columns[i].children[c]).attr("data-index") );
+            const index = getCardIndexFromElem(columns[i].children[c]);
 
             // Check value
             if (12 - VALUES.indexOf( cards[index].getValue() ) !== c) {
@@ -276,3 +293,41 @@ let _isAnimLocked = false;
 export const lockAnimations = () => _isAnimLocked = true;
 export const unlockAnimations = () => _isAnimLocked = false;
 export const isAnimLocked = () => _isAnimLocked;
+
+// History related functions below
+
+export type HistoryData = {
+    cardIndex: number,
+    hasBeenUncovered: boolean, // Whether or not the card was uncovered in this move
+    hasBeenCovered: boolean, // Whether or not the card was covered in this move
+    lastParent: HTMLElement | null // The previous parent element for a move
+};
+type HistoryStateType = HistoryData[];
+
+// The last few moves' data
+const moveHistory: HistoryStateType[] = [];
+
+// The current history data
+let currentHistoryState: HistoryStateType = [];
+
+// Adds an update to the current state
+export const updateHistoryState = (data: HistoryData) => currentHistoryState.push(data);
+
+// Adds the current state to the user's move history
+export const saveHistoryState = () => {
+    if (currentHistoryState.length)
+        moveHistory.push(currentHistoryState);
+    currentHistoryState = []; // Reset history state
+    console.log(moveHistory);
+};
+
+// Clears the move history
+export const clearMoveHistory = () => { while (moveHistory.length) moveHistory.pop(); };
+
+// Undoes the last move up to 20 times
+export const undoLastMove = () => {
+    // Abort if anim locked
+    if (isAnimLocked()) return;
+
+    // Lookup last move
+};

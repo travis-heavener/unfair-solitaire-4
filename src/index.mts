@@ -1,4 +1,4 @@
-import { cards, cardStacks, cycleDeckToNext, generateCards } from "./toolbox.mjs";
+import { cards, cardStacks, clearMoveHistory, cycleDeckToNext, generateCards } from "./toolbox.mjs";
 
 $(() => {
     // Load events
@@ -17,6 +17,9 @@ $(() => {
 const startGame = () => {
     // Hide win screen
     $("#win-container").css("display", "");
+
+    // Clear move history
+    clearMoveHistory();
 
     // Clear board
     while (cards.length) cards.pop().remove();
