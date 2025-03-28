@@ -95,7 +95,7 @@ export class Card {
 
     // Handles mouse down events on the card
     private handleMouseDown(e: JQuery.MouseDownEvent) {
-        if (this.isCovered || isAnimLocked()) return; // Ignore clicks on covered elements
+        if (e.button !== 0 || this.isCovered || isAnimLocked()) return; // Ignore clicks on covered elements
 
         // Store click offset
         const elemPos = $(this.element).offset();
