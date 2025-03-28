@@ -46,6 +46,7 @@ export class Card {
     getValue(): ValueType { return this.value; }
     getSuit(): SuitType { return this.suit; }
     getIsCovered(): boolean { return this.isCovered; }
+    getMovingStackChlidCount(): number { return this.movingStackElem?.childElementCount ?? 0; }
 
     // Visual modifiers
     uncover(doAnimation: boolean=false) {
