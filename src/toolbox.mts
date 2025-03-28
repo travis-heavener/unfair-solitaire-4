@@ -224,6 +224,7 @@ export const checkForWinCondition = (): boolean => {
 export const triggerWinSequence = () => {
     lockAnimations(); // Lock animations
     stopGameClock(); // Stop clock
+    unbindEvents(); // Unbind events
 
     // Update high score
     const highScore = Math.max(parseInt(localStorage.getItem("uf4.highScore") ?? "0"), getScore());
@@ -523,8 +524,23 @@ const handleResetMouseUp = () => {
     }
 };
 
+const bindEvents = () => {
+    $("#stock").on("click", () => cycleDeckToNext()); // Bind cycle deck to stock
+    $("#play-again-btn").on("click", () => startGame()); // Bind play again button
+    $("#undo-btn").on("click", () => undoLastMove()); // Bind undo button
+    $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
+};
+
+const unbindEvents = () => {
+    $("#stock").off("click"); // Bind cycle deck to stock
+    $("#undo-btn").off("click"); // Bind undo button
+    $("#reset-btn").off("mousedown"); // Bind reset button
+};
+
 // Invoke to start the game
 export const startGame = () => {
+    bindEvents();
+
     // Hide win screen
     $("#win-container").css("display", "");
 
@@ -622,7 +638,7 @@ export const beginAutocomplete = async () => {
         }
 
         // Check the top of the waste
-        if (waste.childElementCount === 0) {
+        if (waste.childElementCount === 0 && stock.childElementCount > 0) {
             await moveWasteToStock(); // Reset deck
             await uncoverCardFromStock(); // Draw first card from stock
         }
@@ -646,6 +662,7 @@ export const beginAutocomplete = async () => {
 
 // Used to animate the moving of a card element to a new parent
 export const animateCardElemMove = (card: Card, newParent: HTMLElement, countScore:boolean=true): Promise<void> => {
+    unbindEvents(); // Unbind events
     return new Promise(res => {
         const elem = card.getElement();
         const originalParent = elem.parentElement;
@@ -664,7 +681,7 @@ export const animateCardElemMove = (card: Card, newParent: HTMLElement, countSco
         $(elem).css({
             "--start-top": top + "px",
             "--start-left": left + "px",
-            "animation": "cardMoveBackToStart 150ms ease"
+            "animation": "cardMoveBackToStart 200ms ease"
         });
 
         // Remove animation once done
@@ -672,7 +689,7 @@ export const animateCardElemMove = (card: Card, newParent: HTMLElement, countSco
             $(elem).css({"--start-top": "", "--start-left": "", "animation": ""});
             unlockAnimations(); // Unlock animations
             res();
-        }, 150);
+        }, 200);
 
         // Add score
         incrementMoves();
