@@ -199,7 +199,8 @@ export class Card {
                     addScore(5); // Moving from deck/waste to tableau
                 } else if (!$(this.originalParent).hasClass("foundation") && $(targetElement).hasClass("foundation")) {
                     addScore(10); // Moving from stock/waste or tableau to foundation
-                } else if ($(this.originalParent).hasClass("tableau") && $(targetElement).hasClass("tableau")) {
+                } else if ($(this.originalParent).hasClass("tableau") && $(targetElement).hasClass("tableau") &&
+                    !(this.originalParent.childElementCount === 0 && this.value === "K")) { // Prevent adding score for moving kings stacks around
                     addScore(3); // Moving between columns in the tableau
                 } else if ($(this.originalParent).hasClass("foundation") && !$(targetElement).hasClass("foundation")) {
                     addScore(-15); // Moving off of foundation (to tableau)
