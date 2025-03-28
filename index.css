@@ -14,7 +14,13 @@
     --theme-red-darker: #aa0808;
     --theme-red: #c11;
     --theme-black: #111;
+    --theme-dark-gray: #6d6d6d;
+    --theme-gray: #cfcfcf;
     --theme-white: #eaeaea;
+
+    --theme-gold-dark: #b69b00;
+    --theme-gold-base: #ffd700;
+    --theme-gold-light: #ffe656;
 
     --card-height: min(17vh, calc(100vw * 9 / 16 * 0.17));
     --card-width: calc(var(--card-height) * 0.75);
@@ -176,7 +182,7 @@ html {
     text-shadow: 0.2em 0.2em 0.1em #0003;
 }
 
-#undo-btn {
+#controls-content > button {
     background-color: #0000;
     border: none;
     color: var(--theme-red);
@@ -184,11 +190,41 @@ html {
     transition: 0.1s color;
 }
 
-#undo-btn:hover { color: var(--theme-red-lighter); }
-#undo-btn:active { color: var(--theme-red-darker); }
+#controls-content > button:hover { color: var(--theme-red-lighter); }
+#controls-content > button:active { color: var(--theme-red-darker); }
 
-#controls-content > p {
-    color: var(--theme-white);
+#controls-content > p { color: var(--theme-gray); }
+#time-display { color: var(--theme-white) !important; }
+
+#reset-btn { color: var(--theme-gold-base) !important; }
+
+#reset-btn.scanning {
+    background: linear-gradient(270deg, var(--theme-gold-dark) 0%, var(--theme-gold-dark) 50%, var(--theme-gold-base) 100%);
+    background-clip: text;
+    background-position: 100% 0;
+    background-size: 200% 100%;
+
+    color: transparent !important;
+    text-shadow: none;
+    animation: textScanline 1s linear -500ms;
+}
+
+#reset-tooltip {
+    display: none;
+    position: absolute;
+    top: -1em;
+    right: 1.5em;
+
+    padding: 0.25em 0.47em;
+    background-color: var(--theme-white);
+    border-radius: 0.2em;
+
+    color: var(--theme-black) !important;
+    font-size: calc(0.12 * var(--card-height)) !important;
+    font-weight: 600 !important;
+    text-shadow: 0.1em 0.1em 0.1em #0003;
+
+    animation: fadeIn 50ms 0s, fadeIn 250ms 2s reverse;
 }
 
 /**************************** Card styling ****************************/
@@ -265,6 +301,13 @@ html {
     color: var(--theme-white);
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
     font: 700 calc(0.75 * var(--card-width))/1.5 "Signika", sans-serif;
+}
+
+#win-container > p {
+    margin-bottom: 0.3em;
+    color: var(--theme-gray);
+    text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
+    font: 600 calc(0.27 * var(--card-width)) / 1.5 "Signika", sans-serif;
 }
 
 #win-container > button {
@@ -355,4 +398,9 @@ html {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes textScanline {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
 }

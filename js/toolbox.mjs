@@ -3,7 +3,7 @@ const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 // Used to generate a new array of cards
 const SUITS = ["hearts", "diamonds", "spades", "clubs"];
 const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-export const generateCards = (cards) => {
+const generateCards = (cards) => {
     for (let s = 0; s < 4; ++s)
         for (let v = 0; v < 13; ++v)
             cards.push(new Card(SUITS[s], VALUES[v]));
@@ -164,6 +164,9 @@ export const checkForWinCondition = () => {
 export const triggerWinSequence = () => {
     lockAnimations(); // Lock animations
     stopGameClock(); // Stop clock
+    // Update high score
+    const highScore = Math.max(parseInt(localStorage.getItem("uf4.highScore")) ?? 0, getScore());
+    localStorage.setItem("uf4.highScore", highScore + "");
     // Unbind card events to lock gameplay
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
@@ -207,6 +210,8 @@ export const triggerWinSequence = () => {
     setTimeout(() => {
         $("#win-container").css("display", "flex");
         unlockAnimations(); // Unlock animations
+        // Update high score elem
+        $("#high-score-display").text(localStorage.getItem("uf4.highScore"));
     }, children.length * 100 + 500);
 };
 // Locks and unlocks the animation state to prevent events from firing
@@ -328,8 +333,7 @@ export const incrementMoves = () => {
     ++playerMoves;
     $("#moves-display").text(playerMoves);
 };
-export const getScore = () => playerScore;
-export const getMoves = () => playerMoves;
+const getScore = () => playerScore;
 export const resetScore = () => {
     playerScore = 0;
     $("#score-display").text(0);
@@ -364,4 +368,71 @@ export const getOverlappingElements = (card) => {
     }
     // Return the matching elements
     return bestDropLocation;
+};
+// Handles resetting the game
+let lastResetMouseDown = null;
+let resetTooltipTimeout = null;
+export const handleResetMouseDown = () => {
+    // Clear reset tooltip timeout
+    if (resetTooltipTimeout !== null) {
+        clearTimeout(resetTooltipTimeout);
+        $("#reset-btn").removeClass("scanning"); // Fix animation
+    }
+    // Update last mouse down timestamp
+    lastResetMouseDown = Date.now();
+    // Add visual indicator
+    $("#reset-btn").addClass("scanning");
+    // Bind mouse up
+    $(window).one("mouseup", () => handleResetMouseUp());
+};
+const handleResetMouseUp = () => {
+    // Measure duration
+    $("#reset-btn").removeClass("scanning");
+    if (Date.now() - lastResetMouseDown > 500) {
+        startGame(); // Reset
+        lastResetMouseDown = null;
+    }
+    else {
+        // Show notification
+        $("#reset-tooltip").css("display", "block");
+        // Queue hide again
+        resetTooltipTimeout = setTimeout(() => {
+            $("#reset-tooltip").css("display", "");
+            resetTooltipTimeout = null; // Reset timeout ID
+        }, 2200);
+    }
+};
+// Invoke to start the game
+export const startGame = () => {
+    // Hide win screen
+    $("#win-container").css("display", "");
+    // Reset control elements
+    $("#score-display").text(0);
+    $("#moves-display").text(0);
+    $("#time-display").text("0:00");
+    // Reset state & stats
+    clearMoveHistory();
+    resetScore();
+    resetMoves();
+    // Clear board
+    while (cards.length)
+        cards.pop().remove();
+    // Generate cards
+    generateCards(cards);
+    // Fill tableau
+    const jTableaus = [...$(".tableau")];
+    const jStock = $("#stock");
+    for (let c = 0, i = 0; c < 7; ++c) {
+        for (let r = 0; r < c + 1; ++r) {
+            const card = cards[i++];
+            jTableaus[c].append(card.getElement());
+            if (r === c)
+                card.uncover(); // Uncover top card
+        }
+    }
+    // Push remaining cards to the deck
+    for (let i = 51; i >= 28; --i)
+        jStock.append(cards[i].getElement());
+    // Start clock
+    startGameClock();
 };
