@@ -169,95 +169,41 @@ export const cycleDeckToNext = () => {
 export const checkForWinCondition = () => {
     // Check for all cards stacked on aces
     const aceStacks = [...$(".foundation")];
-    let isWinByAces = true;
-
-    for (let i = 0; i < aceStacks.length && isWinByAces; ++i) {
-        if (aceStacks[i].childElementCount !== 13) {
-            isWinByAces = false;
-            break;
-        }
-
-        // Grab the suit from the ace
-        let suit: SuitType;
+    for (let i = 0; i < aceStacks.length; ++i) {
+        // Verify there are 13 cards on this stack
+        if (aceStacks[i].childElementCount !== 13) return;
 
         // Check each child
-        for (let c = 0; c < aceStacks[i].childElementCount && isWinByAces; ++c) {
+        let suit: SuitType; // Grab the suit from the ace
+        for (let c = 0; c < aceStacks[i].childElementCount; ++c) {
             const index = getCardIndexFromElem(aceStacks[i].children[c]);
 
             // Verify value is correct
-            if (c !== VALUES.indexOf( cards[index].getValue() )) {
-                isWinByAces = false;
-                break;
-            }
+            if (c !== VALUES.indexOf( cards[index].getValue() )) return;
 
             // Verify the suit is correct
-            if (c === 0) {
+            if (c === 0)
                 suit = cards[index].getSuit();
-            } else if (cards[index].getSuit() !== suit) {
-                isWinByAces = false;
-                break;
-            }
+            else if (cards[index].getSuit() !== suit)
+                return;
         }
     }
 
-    // Handle win by aces
-    if (isWinByAces) // Trigger win sequence
-        return triggerWinSequence("aces");
-
-    // Get all card columns with children
-    const columns = [...$(".tableau")].filter(elem => elem.childElementCount === 13);
-
-    // Check for win by kings
-    let isWinByKings = columns.length === 4;
-
-    // Check each column
-    for (let i = 0; i < 4 && isWinByKings; ++i) {
-        // Check each card
-        let lastSuitColor: "red" | "black";
-        for (let c = 0; c < 13 && isWinByKings; ++c) {
-            const index = getCardIndexFromElem(columns[i].children[c]);
-
-            // Check value
-            if (12 - VALUES.indexOf( cards[index].getValue() ) !== c) {
-                isWinByKings = false;
-                console.log("fuck");
-                break;
-            }
-
-            // Check suit
-            if (c === 0) {
-                lastSuitColor = getColorFromSuit( cards[index].getSuit() );
-            } else if (lastSuitColor === getColorFromSuit( cards[index].getSuit() )) {
-                isWinByKings = false;
-                break;
-            } else { // Update last suit color
-                lastSuitColor = getColorFromSuit( cards[index].getSuit() );
-            }
-        }
-    }
-
-    if (isWinByKings) // Trigger win sequence
-        return triggerWinSequence("kings");
+    // Base case, trigger win sequence
+    triggerWinSequence();
 };
 
 // Used to trigger a win sequence
-export const triggerWinSequence = (causedBy: "aces" | "kings") => {
-    // Lock animations
-    lockAnimations();
-
-    // Stop clock
-    stopGameClock();
+export const triggerWinSequence = () => {
+    lockAnimations(); // Lock animations
+    stopGameClock(); // Stop clock
 
     // Unbind card events to lock gameplay
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
 
     // Animate each card
-    let cardLocations: HTMLElement[] = [];
-    if (causedBy === "aces")
-        cardLocations.push(...$(".foundation"));
-    else
-        cardLocations.push(...[...$(".tableau")].filter(elem => elem.hasChildNodes()));
+    const cardLocations: HTMLElement[] = [...$(".foundation")];
 
     // Get children in order going across
     const children: HTMLElement[] = [];
