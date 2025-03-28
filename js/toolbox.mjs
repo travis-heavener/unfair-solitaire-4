@@ -165,7 +165,7 @@ export const triggerWinSequence = () => {
     lockAnimations(); // Lock animations
     stopGameClock(); // Stop clock
     // Update high score
-    const highScore = Math.max(parseInt(localStorage.getItem("uf4.highScore")) ?? 0, getScore());
+    const highScore = Math.max(parseInt(localStorage.getItem("uf4.highScore") ?? "0"), getScore());
     localStorage.setItem("uf4.highScore", highScore + "");
     // Unbind card events to lock gameplay
     for (let i = 0; i < cards.length; ++i)
