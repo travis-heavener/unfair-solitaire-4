@@ -414,3 +414,36 @@ export const resetMoves = () => {
     playerMoves = 0;
     $("#moves-display").text(0);
 };
+
+// Used to get the element that best overlaps the current card element
+export const getOverlappingElements = (card: Card): HTMLElement | null => {
+    // Get the card's bounding box
+    const cardElem = card.getElement();
+    const bounds = cardElem.getBoundingClientRect();
+
+    // Iterate over potential matches
+    const dropLocations = $(".foundation, .tableau");
+
+    let overlapArea = 0; // The overlap of the best match
+    let bestDropLocation: HTMLElement = null;
+    for (let i = 0; i < dropLocations.length; ++i) {
+        const elem = dropLocations[i];
+        const targetBounds = elem.getBoundingClientRect();
+        if (bounds.right > targetBounds.left && bounds.left < targetBounds.right &&
+            bounds.bottom > targetBounds.top && bounds.top < targetBounds.bottom) {
+
+            // Calculate overlap
+            const width = Math.min(bounds.right, targetBounds.right) - Math.max(bounds.left, targetBounds.left);
+            const height = Math.min(bounds.bottom, targetBounds.bottom) - Math.max(bounds.top, targetBounds.top);
+            const area = width * height;
+
+            if (area > overlapArea) {
+                overlapArea = area;
+                bestDropLocation = elem;
+            }
+        }
+    }
+
+    // Return the matching elements
+    return bestDropLocation;
+};

@@ -1,4 +1,4 @@
-import { addScore, canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { addScore, canStackOnElem, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -97,7 +97,7 @@ export class Card {
         // Append moving stack to body
         $("body").append(this.movingStackElem);
         $(window).on("mousemove", e => this.handleMouseMove(e));
-        $(window).on("mouseup", e => this.handleMouseUp(e));
+        $(window).on("mouseup", () => this.handleMouseUp());
         // Initially set the stack position
         this.handleMouseMove(e);
         // Lock animations
@@ -109,11 +109,10 @@ export class Card {
         $(this.movingStackElem).css({ "left": x, "top": y });
     }
     // Handles mouse up
-    handleMouseUp(e) {
+    handleMouseUp() {
         // Check for drop location
-        const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
-            .filter(elem => $(elem).hasClass("tableau") || $(elem).hasClass("foundation"));
-        if (collidedElements.length === 0 || collidedElements[0] === this.originalParent || !canStackOnElem(this, collidedElements[0])) {
+        const targetElement = getOverlappingElements(this);
+        if (targetElement === null || targetElement === this.originalParent || !canStackOnElem(this, targetElement)) {
             // Return to starting position
             const children = [...this.movingStackElem.children];
             const startingPos = children.map(child => $(child).offset());
@@ -137,7 +136,7 @@ export class Card {
             const children = [...this.movingStackElem.children];
             const startingPos = children.map(child => $(child).offset());
             // Add to new parent
-            $(collidedElements[0]).append(...children);
+            $(targetElement).append(...children);
             // Update current history state & animate
             children.forEach((child, i) => {
                 const cardIndex = getCardIndexFromElem(child);
@@ -155,16 +154,16 @@ export class Card {
                 const lastPosition = this.movingCardOriginalPositions[i];
                 updateHistoryState({ "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex, "lastPosition": lastPosition });
                 // Add score
-                if (this.originalParent.id === "waste" && $(collidedElements[0]).hasClass("tableau")) {
+                if (this.originalParent.id === "waste" && $(targetElement).hasClass("tableau")) {
                     addScore(5); // Moving from deck/waste to tableau
                 }
-                else if (!$(this.originalParent).hasClass("foundation") && $(collidedElements[0]).hasClass("foundation")) {
+                else if (!$(this.originalParent).hasClass("foundation") && $(targetElement).hasClass("foundation")) {
                     addScore(10); // Moving from stock/waste or tableau to foundation
                 }
-                else if ($(this.originalParent).hasClass("tableau") && $(collidedElements[0]).hasClass("tableau")) {
+                else if ($(this.originalParent).hasClass("tableau") && $(targetElement).hasClass("tableau")) {
                     addScore(3); // Moving between columns in the tableau
                 }
-                else if ($(this.originalParent).hasClass("foundation") && !$(collidedElements[0]).hasClass("foundation")) {
+                else if ($(this.originalParent).hasClass("foundation") && !$(targetElement).hasClass("foundation")) {
                     addScore(-15); // Moving off of foundation (to tableau)
                 }
             });

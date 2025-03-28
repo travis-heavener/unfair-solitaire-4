@@ -1,4 +1,4 @@
-import { addScore, canStackOnElem, checkForWinCondition, getCardIndexFromElem, isAnimLocked, lockAnimations, playSound, Point, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { addScore, canStackOnElem, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, Point, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 
 export type SuitType = "hearts" | "diamonds" | "spades" | "clubs";
 export type ValueType = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "Joker";
@@ -125,7 +125,7 @@ export class Card {
         // Append moving stack to body
         $("body").append(this.movingStackElem);
         $(window).on("mousemove", e => this.handleMouseMove(e));
-        $(window).on("mouseup", e => this.handleMouseUp(e));
+        $(window).on("mouseup", () => this.handleMouseUp());
 
         // Initially set the stack position
         this.handleMouseMove(e);
@@ -141,12 +141,11 @@ export class Card {
     }
 
     // Handles mouse up
-    private handleMouseUp(e: JQuery.MouseUpEvent) {
+    private handleMouseUp() {
         // Check for drop location
-        const collidedElements = document.elementsFromPoint(e.clientX, e.clientY)
-            .filter(elem => $(elem).hasClass("tableau") || $(elem).hasClass("foundation"));
+        const targetElement = getOverlappingElements(this);
 
-        if (collidedElements.length === 0 || collidedElements[0] === this.originalParent || !canStackOnElem(this, collidedElements[0] as HTMLElement)) {
+        if (targetElement === null || targetElement === this.originalParent || !canStackOnElem(this, targetElement)) {
             // Return to starting position
             const children = [...this.movingStackElem.children];
             const startingPos = children.map(child => $(child).offset());
@@ -173,7 +172,7 @@ export class Card {
             const startingPos = children.map(child => $(child).offset());
 
             // Add to new parent
-            $(collidedElements[0]).append( ...children );
+            $(targetElement).append( ...children );
 
             // Update current history state & animate
             children.forEach((child, i) => {
@@ -196,13 +195,13 @@ export class Card {
                 updateHistoryState({ "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex, "lastPosition": lastPosition });
 
                 // Add score
-                if (this.originalParent.id === "waste" && $(collidedElements[0]).hasClass("tableau")) {
+                if (this.originalParent.id === "waste" && $(targetElement).hasClass("tableau")) {
                     addScore(5); // Moving from deck/waste to tableau
-                } else if (!$(this.originalParent).hasClass("foundation") && $(collidedElements[0]).hasClass("foundation")) {
+                } else if (!$(this.originalParent).hasClass("foundation") && $(targetElement).hasClass("foundation")) {
                     addScore(10); // Moving from stock/waste or tableau to foundation
-                } else if ($(this.originalParent).hasClass("tableau") && $(collidedElements[0]).hasClass("tableau")) {
+                } else if ($(this.originalParent).hasClass("tableau") && $(targetElement).hasClass("tableau")) {
                     addScore(3); // Moving between columns in the tableau
-                } else if ($(this.originalParent).hasClass("foundation") && !$(collidedElements[0]).hasClass("foundation")) {
+                } else if ($(this.originalParent).hasClass("foundation") && !$(targetElement).hasClass("foundation")) {
                     addScore(-15); // Moving off of foundation (to tableau)
                 }
             });
