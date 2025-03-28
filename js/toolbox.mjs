@@ -20,7 +20,7 @@ const shuffleCards = (arr) => {
     }
 };
 // Generate and store the cards
-export const cards = [];
+const cards = [];
 // Returns the numeric card index from an element's data-index attribute
 export const getCardIndexFromElem = (elem) => parseInt(elem.getAttribute("data-index"));
 // Used to uncover the bottom card in the tableau, if it exists
@@ -88,21 +88,17 @@ export const cycleDeckToNext = () => {
     if (isAnimLocked())
         return;
     // Check if the deck is empty
-    const stock = $("#stock")[0];
-    const waste = $("#waste")[0];
+    const stock = $("#stock")[0], waste = $("#waste")[0];
     // Abort if the deck is empty
     if (waste.childElementCount === 0 && stock.childElementCount === 0)
         return;
     // Lock animations
     lockAnimations();
-    if (stock.childElementCount === 0) { // Move all cards back from the empty deck
+    if (stock.childElementCount === 0) // Move all cards back from the empty deck
         moveWasteToStock();
-    }
-    else {
+    else
         uncoverCardFromStock();
-    }
-    // Save the history state
-    saveHistoryState();
+    saveHistoryState(); // Save the history state
     checkForAutocomplete(); // Check for autocomplete
 };
 // Used to reset the stock from the waste pile
@@ -184,7 +180,7 @@ export const checkForWinCondition = () => {
     return true;
 };
 // Used to trigger a win sequence
-export const triggerWinSequence = () => {
+const triggerWinSequence = () => {
     lockAnimations(); // Lock animations
     stopGameClock(); // Stop clock
     unbindEvents(); // Unbind events
@@ -261,10 +257,10 @@ export const saveHistoryState = () => {
         moveHistory.shift();
 };
 // Clears the move history
-export const clearMoveHistory = () => { while (moveHistory.length)
+const clearMoveHistory = () => { while (moveHistory.length)
     moveHistory.pop(); };
 // Undoes the last move up to 20 times
-export const undoLastMove = () => {
+const undoLastMove = () => {
     // Abort if anim locked
     if (isAnimLocked() || moveHistory.length === 0)
         return;
@@ -289,7 +285,7 @@ export const undoLastMove = () => {
 // Starts the game clock
 let _clockInterval = null;
 let elapsedSec = 0;
-export const startGameClock = () => {
+const startGameClock = () => {
     // Stop any running intervals
     if (_clockInterval !== null)
         clearInterval(_clockInterval);
@@ -303,7 +299,7 @@ export const startGameClock = () => {
     }, 1e3);
 };
 // Used to stop the game clock
-export const stopGameClock = () => {
+const stopGameClock = () => {
     clearInterval(_clockInterval);
     elapsedSec = 0;
     _clockInterval = null;
@@ -325,11 +321,11 @@ export const playSound = (name) => {
 };
 // Scoring & moves counting functionality below
 let playerScore = 0, playerMoves = 0;
-export const addScore = (pts) => $("#score-display").text(playerScore += pts);
-export const incrementMoves = () => $("#moves-display").text(++playerMoves);
+const addScore = (pts) => $("#score-display").text(playerScore += pts);
+const incrementMoves = () => $("#moves-display").text(++playerMoves);
 const getScore = () => playerScore;
-export const resetScore = () => $("#score-display").text(playerScore = 0);
-export const resetMoves = () => $("#moves-display").text(playerMoves = 0);
+const resetScore = () => $("#score-display").text(playerScore = 0);
+const resetMoves = () => $("#moves-display").text(playerMoves = 0);
 // Used to get the element that best overlaps the current card element
 export const getOverlappingElements = (card) => {
     // Get the card's bounding box
@@ -360,7 +356,7 @@ export const getOverlappingElements = (card) => {
 // Handles resetting the game
 let lastResetMouseDown = null;
 let resetTooltipTimeout = null;
-export const handleResetMouseDown = () => {
+const handleResetMouseDown = () => {
     // Clear reset tooltip timeout
     if (resetTooltipTimeout !== null) {
         clearTimeout(resetTooltipTimeout);
@@ -460,7 +456,7 @@ export const checkForAutocomplete = () => {
     });
 };
 // Used to start autocompleting the game
-export const beginAutocomplete = async () => {
+const beginAutocomplete = async () => {
     // Lock user inputs
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
