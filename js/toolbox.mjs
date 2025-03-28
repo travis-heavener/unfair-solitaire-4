@@ -92,7 +92,7 @@ export const cycleDeckToNext = () => {
         // Play sound
         playSound("shuffle");
         // Update score
-        addScore(-100); // Cycling deck
+        addScore(-50); // Cycling deck
         [...waste.children].forEach(elem => {
             // Get card
             const index = getCardIndexFromElem(elem);
