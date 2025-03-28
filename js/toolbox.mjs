@@ -382,6 +382,7 @@ export const handleResetMouseDown = () => {
     lastResetMouseDown = Date.now();
     // Add visual indicator
     $("#reset-btn").addClass("scanning");
+    $("#reset-tooltip").css("display", "");
     // Bind mouse up
     $(window).one("mouseup", () => handleResetMouseUp());
 };
