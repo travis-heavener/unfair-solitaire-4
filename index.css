@@ -146,6 +146,12 @@ html {
     width: calc(1.5 * var(--card-width));
 }
 
+/* Improve visual clarity between columns */
+.tableau:not(:last-of-type)  { border-right: calc(0.02 * var(--card-width)) solid var(--theme-light); }
+.tableau:last-of-type        { border-right: calc(0.04 * var(--card-width)) solid var(--theme-light); }
+.tableau:not(:first-of-type) { border-left:  calc(0.02 * var(--card-width)) solid var(--theme-light); }
+.tableau:first-of-type       { border-left:  calc(0.04 * var(--card-width)) solid var(--theme-light); }
+
 .tableau > .card:not(:first-child) {
     margin-top: calc(-0.85 * var(--card-height));
 }
