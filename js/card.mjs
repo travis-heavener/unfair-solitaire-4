@@ -1,4 +1,4 @@
-import { addScore, canStackOnElem, checkForAutocomplete, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { animateCardElemMove, canStackOnElem, checkForAutocomplete, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -115,65 +115,22 @@ export class Card {
     async handleMouseUp() {
         // Check for drop location
         const targetElement = getOverlappingElements(this);
+        const children = [...this.movingStackElem.children];
         if (targetElement === null || targetElement === this.originalParent || !canStackOnElem(this, targetElement)) {
-            // Return to starting position
-            const children = [...this.movingStackElem.children];
-            const startingPos = children.map(child => $(child).offset());
-            // Add to new parent
-            $(this.originalParent).append(...children);
-            // Animate from old to new
-            children.forEach((child, i) => {
-                const bounds = child.getBoundingClientRect();
-                const top = startingPos[i].top - bounds.top;
-                const left = startingPos[i].left - bounds.left;
-                $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 150ms ease" });
-                // Remove the animation after duration
-                setTimeout(() => {
-                    $(child).css({ "--start-top": "", "--start-left": "", "animation": "" });
-                    unlockAnimations(); // Unlock animations
-                }, 150);
-            });
+            for (let i = 0; i < children.length; ++i) // Return to starting position
+                animateCardElemMove(children[i], this.originalParent, null, false);
         }
         else { // Can place
-            // Determine starting pos
-            const children = [...this.movingStackElem.children];
-            const startingPos = children.map(child => $(child).offset());
-            // Add to new parent
-            $(targetElement).append(...children);
-            // Update current history state & animate
-            children.forEach((child, i) => {
-                const cardIndex = getCardIndexFromElem(child);
+            for (let i = 0; i < children.length; ++i) {
                 // Animate from old to new
-                const bounds = child.getBoundingClientRect();
-                const top = startingPos[i].top - bounds.top;
-                const left = startingPos[i].left - bounds.left;
-                $(child).css({ "--start-top": top + "px", "--start-left": left + "px", "animation": "cardMoveBackToStart 250ms ease" });
-                // Remove the animation after duration
-                setTimeout(() => {
-                    $(child).css({ "--start-top": "", "--start-left": "", "animation": "" });
-                    unlockAnimations(); // Unlock animations
-                }, 250);
+                animateCardElemMove(children[i], targetElement, this.originalParent);
                 // Add state
-                const lastPosition = this.movingCardOriginalPositions[i];
-                updateHistoryState({ "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false, "cardIndex": cardIndex, "lastPosition": lastPosition });
-                // Add score
-                if (this.originalParent.id === "waste" && $(targetElement).hasClass("tableau")) {
-                    addScore(5); // Moving from deck/waste to tableau
-                }
-                else if (!$(this.originalParent).hasClass("foundation") && $(targetElement).hasClass("foundation")) {
-                    addScore(10); // Moving from stock/waste or tableau to foundation
-                }
-                else if ($(this.originalParent).hasClass("tableau") && $(targetElement).hasClass("tableau") &&
-                    !(this.originalParent.childElementCount === 0 && this.value === "K")) { // Prevent adding score for moving kings stacks around
-                    addScore(3); // Moving between columns in the tableau
-                }
-                else if ($(this.originalParent).hasClass("foundation") && !$(targetElement).hasClass("foundation")) {
-                    addScore(-15); // Moving off of foundation (to tableau)
-                }
-            });
+                updateHistoryState({
+                    "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false,
+                    "cardIndex": getCardIndexFromElem(children[i]), "lastPosition": this.movingCardOriginalPositions[i]
+                });
+            }
         }
-        // Remove children from moving stack
-        this.movingStackElem.innerHTML = "";
         // Uncover previous card
         if ($(this.originalParent).hasClass("tableau"))
             await uncoverTopOfColumn(parseInt(this.originalParent.id.replace("tableau-", "")));
@@ -182,8 +139,8 @@ export class Card {
         // Reset moving stack element
         $(this.movingStackElem).remove();
         this.originalParent = this.movingStackElem = this.movingCardOriginalPositions = this.clickOffset = null;
-        // Disable events
-        $(window).off("mousemove mouseup");
+        $(window).off("mousemove mouseup"); // Disable events
+        unlockAnimations(); // Unlock animations
         saveHistoryState(); // Save the current history state
         checkForAutocomplete(); // Check for autocomplete
         checkForWinCondition(); // Check for win condition

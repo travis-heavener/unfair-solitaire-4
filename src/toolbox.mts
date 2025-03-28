@@ -41,13 +41,14 @@ export const uncoverTopOfColumn = (colNum: number): Promise<void> => {
             const index = getCardIndexFromElem(column.lastChild);
             const wasCovered = cards[index].getIsCovered();
             playSound("flip"); // Play sound regardless
-            await cards[index].uncover(true); // Handles locking the animation on its own
 
             // Update state & points
             if (wasCovered) {
                 updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
                 addScore(5); // Uncovered card in tableau
             }
+
+            await cards[index].uncover(true); // Handles locking the animation on its own
         } else {
             playSound("flip"); // Play sound regardless
         }
@@ -128,11 +129,8 @@ export const cycleDeckToNext = () => {
 const moveWasteToStock = (): Promise<void> => {
     const stock = $("#stock")[0], waste = $("#waste")[0];
     return new Promise(res => {
-        // Play sound
-        playSound("shuffle");
-
-        // Update score
-        addScore(-50); // Cycling deck
+        playSound("shuffle"); // Play sound
+        addScore(-50); // Update score for cycling deck
 
         [...waste.children].forEach(elem => {
             // Get card
@@ -143,9 +141,8 @@ const moveWasteToStock = (): Promise<void> => {
             const offset = $(elem).offset();
             const lastPosition: Point = { "x": offset.left, "y": offset.top };
 
-            $(stock).prepend(elem);
-
             // Update history state
+            $(stock).prepend(elem);
             updateHistoryState({ "cardIndex": index, "hasBeenCovered": true, "hasBeenUncovered": false, "originalParent": waste, "lastPosition": lastPosition });
         });
 
@@ -333,19 +330,11 @@ export const clearMoveHistory = () => { while (moveHistory.length) moveHistory.p
 // Undoes the last move up to 20 times
 export const undoLastMove = () => {
     // Abort if anim locked
-    if (isAnimLocked()) return;
-
-    // Lookup last move
-    if (moveHistory.length === 0) return;
-
-    playSound("flip"); // Play sound
-    incrementMoves(); // Count move
-
-    const lastState = moveHistory.pop();
+    if (isAnimLocked() || moveHistory.length === 0) return;
 
     // Handle each state change
-    for (let i = 0; i < lastState.length; ++i) {
-        const stateData = lastState[i];
+    const lastState = moveHistory.pop();
+    for (const stateData of lastState) {
         const card = cards[stateData.cardIndex];
 
         // Handle covering/uncovering
@@ -355,40 +344,14 @@ export const undoLastMove = () => {
             card.cover();
 
         // Undo move
-        if (stateData.originalParent !== null) {
-            const elem = card.getElement();
-
-            // Calculate offset
-            const offset = $(elem).offset();
-            const top = offset.top - stateData.lastPosition.y;
-            const left = offset.left - stateData.lastPosition.x;
-
-            // Move to previous parent
-            $(stateData.originalParent).append(elem);
-
-            // Lock animations
-            lockAnimations();
-
-            // Handle animation to previous position
-            $(elem).css({
-                "--start-top": top + "px",
-                "--start-left": left + "px",
-                "animation": "cardMoveBackToStart 150ms ease 1"
-            });
-
-            // Remove animation once done
-            setTimeout(() => {
-                $(elem).css({"position": "", "--start-top": "", "--start-left": "", "animation": ""});
-                unlockAnimations(); // Unlock animations
-            }, 150);
-        }
+        if (stateData.originalParent !== null)
+            animateCardElemMove(card.getElement(), stateData.originalParent, null, false);
     }
 
-    // Update score
+    playSound("flip"); // Play sound
+    incrementMoves(); // Count move
     addScore(-15); // -15 penalty for undoing
-
-    // Remove autocomplete icon if needed
-    checkForAutocomplete();
+    checkForAutocomplete(); // Remove autocomplete icon if needed
 };
 
 // Starts the game clock
@@ -434,23 +397,11 @@ export const playSound = (name: "shuffle" | "flip") => {
 
 // Scoring & moves counting functionality below
 let playerScore = 0, playerMoves = 0;
-export const addScore = (pts: number) => {
-    playerScore += pts;
-    $("#score-display").text(playerScore);
-};
-export const incrementMoves = () => {
-    ++playerMoves;
-    $("#moves-display").text(playerMoves);
-};
+export const addScore = (pts: number) => $("#score-display").text(playerScore += pts);
+export const incrementMoves = () => $("#moves-display").text(++playerMoves);
 const getScore = (): number => playerScore;
-export const resetScore = () => {
-    playerScore = 0;
-    $("#score-display").text(0);
-};
-export const resetMoves = () => {
-    playerMoves = 0;
-    $("#moves-display").text(0);
-};
+export const resetScore = () => $("#score-display").text(playerScore = 0);
+export const resetMoves = () => $("#moves-display").text(playerMoves = 0);
 
 // Used to get the element that best overlaps the current card element
 export const getOverlappingElements = (card: Card): HTMLElement | null => {
@@ -541,16 +492,14 @@ const unbindEvents = () => {
 export const startGame = () => {
     bindEvents();
 
-    // Hide win screen
-    $("#win-container").css("display", "");
+    // Hide win screen & autocomplete button
+    $("#win-container, #autocomplete-btn").css("display", "");
 
-    // Hide autocomplete button
-    $("#autocomplete-btn").css("display", "");
+    // Disable autocomplete button
     $("#autocomplete-btn").off("click");
 
     // Reset control elements
-    $("#score-display").text(0);
-    $("#moves-display").text(0);
+    $("#score-display, #moves-display").text(0);
     $("#time-display").text("0:00");
 
     // Reset state & stats
@@ -601,6 +550,7 @@ export const checkForAutocomplete = () => {
     $("#autocomplete-btn").css("display", "block");
     $("#autocomplete-btn").one("click", function() {
         $(this).remove();
+        unbindEvents(); // Unbind events
         beginAutocomplete();
     });
 };
@@ -631,7 +581,7 @@ export const beginAutocomplete = async () => {
             for (let j = 0; j < foundation.length; ++j) {
                 if (canStackOnElem(card, foundation[j])) {
                     // Move to foundation
-                    await animateCardElemMove(card, foundation[j]);
+                    await animateCardElemMove(card.getElement(), foundation[j]);
                     continue outerLoop;
                 }
             }
@@ -648,7 +598,7 @@ export const beginAutocomplete = async () => {
         for (let i = 0; i < foundation.length; ++i) {
             if (canStackOnElem(topWasteCard, foundation[i])) {
                 // Move to foundation
-                await animateCardElemMove(topWasteCard, foundation[i]);
+                await animateCardElemMove(topWasteCard.getElement(), foundation[i]);
                 continue outerLoop;
             }
         }
@@ -661,26 +611,21 @@ export const beginAutocomplete = async () => {
 };
 
 // Used to animate the moving of a card element to a new parent
-export const animateCardElemMove = (card: Card, newParent: HTMLElement, countScore:boolean=true): Promise<void> => {
-    unbindEvents(); // Unbind events
+export const animateCardElemMove = (elem: HTMLElement, newParent: HTMLElement, originalParent:HTMLElement=null, countScore:boolean=true): Promise<void> => {
     return new Promise(res => {
-        const elem = card.getElement();
-        const originalParent = elem.parentElement;
-        const startOffset = $(elem).offset();
+        if (!originalParent)
+            originalParent = elem.parentElement;
 
+        const startOffset = $(elem).offset(); // Get offset before appending to new parent
         $(newParent).append(elem); // Move to parent
         lockAnimations(); // Lock animations
-        playSound("flip");
-
-        // Calculate offset
-        const endOffset = $(elem).offset();
-        const top = startOffset.top - endOffset.top;
-        const left = startOffset.left - endOffset.left;
+        playSound("flip"); // Play flip sound
 
         // Handle animation to previous position
+        const endOffset = $(elem).offset();
         $(elem).css({
-            "--start-top": top + "px",
-            "--start-left": left + "px",
+            "--start-top": (startOffset.top - endOffset.top) + "px",
+            "--start-left": (startOffset.left - endOffset.left) + "px",
             "animation": "cardMoveBackToStart 200ms ease"
         });
 
@@ -694,15 +639,21 @@ export const animateCardElemMove = (card: Card, newParent: HTMLElement, countSco
         // Add score
         incrementMoves();
         if (!countScore) return;
+
+        const card = cards[ getCardIndexFromElem(elem) ];
         if (originalParent.id === "waste" && $(newParent).hasClass("tableau")) {
-            addScore(5); // Moving from deck/waste to tableau
+            // Moving from deck/waste to tableau
+            addScore(5);
         } else if (!$(originalParent).hasClass("foundation") && $(newParent).hasClass("foundation")) {
-            addScore(10); // Moving from stock/waste or tableau to foundation
+            // Moving from stock/waste or tableau to foundation
+            addScore(10);
         } else if ($(originalParent).hasClass("tableau") && $(newParent).hasClass("tableau") &&
-            !(originalParent.childElementCount === 0 && card.getValue() === "K")) { // Prevent adding score for moving kings stacks around
+            !(originalParent.childElementCount === 0 && card.getValue() === "K")) {
+            // Prevent adding score for moving kings stacks around
             addScore(3); // Moving between columns in the tableau
         } else if ($(originalParent).hasClass("foundation") && !$(newParent).hasClass("foundation")) {
-            addScore(-15); // Moving off of foundation (to tableau)
+            // Moving off of foundation (to tableau)
+            addScore(-15);
         }
     });
 };
