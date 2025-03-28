@@ -33,20 +33,27 @@ export const cards: Card[] = [];
 export const getCardIndexFromElem = (elem: any) => parseInt( elem.getAttribute("data-index") );
 
 // Used to uncover the bottom card in the tableau, if it exists
-export const uncoverTopOfColumn = (colNum: number) => {
-    // Get the index of the top card
-    const column = $(".tableau")[colNum-1];
-    if (column.lastChild !== null) {
-        const index = getCardIndexFromElem(column.lastChild);
-        const wasCovered = cards[index].getIsCovered();
-        cards[index].uncover(true); // Handles locking the animation on its own
+export const uncoverTopOfColumn = (colNum: number): Promise<void> => {
+    return new Promise(async res => {
+        // Get the index of the top card
+        const column = $(".tableau")[colNum-1];
+        if (column.lastChild !== null) {
+            const index = getCardIndexFromElem(column.lastChild);
+            const wasCovered = cards[index].getIsCovered();
+            playSound("flip"); // Play sound regardless
+            await cards[index].uncover(true); // Handles locking the animation on its own
 
-        // Update state & points
-        if (wasCovered) {
-            updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
-            addScore(5); // Uncovered card in tableau
+            // Update state & points
+            if (wasCovered) {
+                updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
+                addScore(5); // Uncovered card in tableau
+            }
+        } else {
+            playSound("flip"); // Play sound regardless
         }
-    }
+        res();
+    });
+    
 };
 
 // Returns either red or black based on the SuitType
@@ -107,6 +114,20 @@ export const cycleDeckToNext = () => {
     lockAnimations();
 
     if (stock.childElementCount === 0) { // Move all cards back from the empty deck
+        moveWasteToStock();
+    } else {
+        uncoverCardFromStock();
+    }
+
+    // Save the history state
+    saveHistoryState();
+    checkForAutocomplete(); // Check for autocomplete
+};
+
+// Used to reset the stock from the waste pile
+const moveWasteToStock = (): Promise<void> => {
+    const stock = $("#stock")[0], waste = $("#waste")[0];
+    return new Promise(res => {
         // Play sound
         playSound("shuffle");
 
@@ -133,8 +154,15 @@ export const cycleDeckToNext = () => {
         setTimeout(() => { // Remove animation after complete to prevent re-executing
             $(stock.firstChild).css("animation", "");
             unlockAnimations(); // Unlock animations
+            res(); // Resolve promise
         }, 100);
-    } else {
+    });
+};
+
+// Used to uncover a card from the stock
+const uncoverCardFromStock = (): Promise<void> => {
+    const stock = $("#stock")[0], waste = $("#waste")[0];
+    return new Promise(res => {
         // Play sound
         playSound("flip");
 
@@ -155,23 +183,21 @@ export const cycleDeckToNext = () => {
         setTimeout(() => { // Remove animation after complete to prevent re-executing
             $(elem).css("animation", "");
             unlockAnimations(); // Unlock animations
+            res(); // Resolve promise
         }, 100);
 
         // Update state
         updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": stock, "lastPosition": lastPosition });
-    }
-
-    // Save the history state
-    saveHistoryState();
+    });
 };
 
 // Returns true if a win condition is met, false otherwise
-export const checkForWinCondition = () => {
+export const checkForWinCondition = (): boolean => {
     // Check for all cards stacked on aces
     const aceStacks = [...$(".foundation")];
     for (let i = 0; i < aceStacks.length; ++i) {
         // Verify there are 13 cards on this stack
-        if (aceStacks[i].childElementCount !== 13) return;
+        if (aceStacks[i].childElementCount !== 13) return false;
 
         // Check each child
         let suit: SuitType; // Grab the suit from the ace
@@ -179,18 +205,19 @@ export const checkForWinCondition = () => {
             const index = getCardIndexFromElem(aceStacks[i].children[c]);
 
             // Verify value is correct
-            if (c !== VALUES.indexOf( cards[index].getValue() )) return;
+            if (c !== VALUES.indexOf( cards[index].getValue() )) return false;
 
             // Verify the suit is correct
             if (c === 0)
                 suit = cards[index].getSuit();
             else if (cards[index].getSuit() !== suit)
-                return;
+                return false;
         }
     }
 
     // Base case, trigger win sequence
     triggerWinSequence();
+    return true;
 };
 
 // Used to trigger a win sequence
@@ -358,6 +385,9 @@ export const undoLastMove = () => {
 
     // Update score
     addScore(-15); // -15 penalty for undoing
+
+    // Remove autocomplete icon if needed
+    checkForAutocomplete();
 };
 
 // Starts the game clock
@@ -498,6 +528,10 @@ export const startGame = () => {
     // Hide win screen
     $("#win-container").css("display", "");
 
+    // Hide autocomplete button
+    $("#autocomplete-btn").css("display", "");
+    $("#autocomplete-btn").off("click");
+
     // Reset control elements
     $("#score-display").text(0);
     $("#moves-display").text(0);
@@ -531,4 +565,127 @@ export const startGame = () => {
 
     // Start clock
     startGameClock();
+};
+
+// Used to check if autocomplete is available
+export const checkForAutocomplete = () => {
+    // Check if each card is uncovered
+    const columns = $(".tableau");
+    for (let i = 0; i < columns.length; ++i) {
+        for (let j = 0; j < columns[i].childElementCount; ++j) {
+            if ( $(columns[i].children[j]).hasClass("covered") ) {
+                $("#autocomplete-btn").css("display", "");
+                $("#autocomplete-btn").off("click");
+                return;
+            }
+        }
+    }
+
+    // Base case, is able to autocomplete
+    $("#autocomplete-btn").css("display", "block");
+    $("#autocomplete-btn").one("click", function() {
+        $(this).remove();
+        beginAutocomplete();
+    });
+};
+
+// Used to start autocompleting the game
+export const beginAutocomplete = async () => {
+    // Lock user inputs
+    for (let i = 0; i < cards.length; ++i)
+        cards[i].removeEventListeners();
+
+    // Continue until win condition is met
+    const columns = $(".tableau");
+    const foundation = $(".foundation");
+    const stock = $("#stock")[0];
+    const waste = $("#waste")[0];
+
+    outerLoop:
+    do {
+        // Check each column
+        for (let i = 0; i < columns.length; ++i) {
+            if (columns[i].childElementCount === 0) continue;
+
+            // Check top card
+            const index = getCardIndexFromElem(columns[i].lastChild);
+            const card = cards[index];
+
+            // Check if it can be stacked on the foundation
+            for (let j = 0; j < foundation.length; ++j) {
+                if (canStackOnElem(card, foundation[j])) {
+                    // Move to foundation
+                    await animateCardElemMove(card, foundation[j]);
+                    continue outerLoop;
+                }
+            }
+        }
+
+        // Check the top of the waste
+        if (waste.childElementCount === 0) {
+            await moveWasteToStock(); // Reset deck
+            await uncoverCardFromStock(); // Draw first card from stock
+        }
+
+        const topWasteIndex = getCardIndexFromElem(waste.lastChild);
+        const topWasteCard = cards[topWasteIndex];
+        for (let i = 0; i < foundation.length; ++i) {
+            if (canStackOnElem(topWasteCard, foundation[i])) {
+                // Move to foundation
+                await animateCardElemMove(topWasteCard, foundation[i]);
+                continue outerLoop;
+            }
+        }
+
+        // Otherwise, can't stack on the foundation yet so cycle the stock to next card
+        if (stock.childElementCount === 0)
+            await moveWasteToStock(); // Reset deck
+        await uncoverCardFromStock(); // Cycle stock to next card
+    } while (!checkForWinCondition());
+};
+
+// Used to animate the moving of a card element to a new parent
+export const animateCardElemMove = (card: Card, newParent: HTMLElement, countScore:boolean=true): Promise<void> => {
+    return new Promise(res => {
+        const elem = card.getElement();
+        const originalParent = elem.parentElement;
+        const startOffset = $(elem).offset();
+
+        $(newParent).append(elem); // Move to parent
+        lockAnimations(); // Lock animations
+        playSound("flip");
+
+        // Calculate offset
+        const endOffset = $(elem).offset();
+        const top = startOffset.top - endOffset.top;
+        const left = startOffset.left - endOffset.left;
+
+        // Handle animation to previous position
+        $(elem).css({
+            "--start-top": top + "px",
+            "--start-left": left + "px",
+            "animation": "cardMoveBackToStart 150ms ease"
+        });
+
+        // Remove animation once done
+        setTimeout(() => {
+            $(elem).css({"--start-top": "", "--start-left": "", "animation": ""});
+            unlockAnimations(); // Unlock animations
+            res();
+        }, 150);
+
+        // Add score
+        incrementMoves();
+        if (!countScore) return;
+        if (originalParent.id === "waste" && $(newParent).hasClass("tableau")) {
+            addScore(5); // Moving from deck/waste to tableau
+        } else if (!$(originalParent).hasClass("foundation") && $(newParent).hasClass("foundation")) {
+            addScore(10); // Moving from stock/waste or tableau to foundation
+        } else if ($(originalParent).hasClass("tableau") && $(newParent).hasClass("tableau") &&
+            !(originalParent.childElementCount === 0 && card.getValue() === "K")) { // Prevent adding score for moving kings stacks around
+            addScore(3); // Moving between columns in the tableau
+        } else if ($(originalParent).hasClass("foundation") && !$(newParent).hasClass("foundation")) {
+            addScore(-15); // Moving off of foundation (to tableau)
+        }
+    });
 };

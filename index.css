@@ -233,6 +233,30 @@ html {
     animation: fadeIn 50ms 0s, fadeIn 250ms 2s reverse;
 }
 
+#autocomplete-btn {
+    display: none;
+    position: absolute;
+    left: calc(50% - 4.5em);
+    bottom: 4em;
+
+    width: 9em;
+    padding: 0.3em 0.4em;
+
+    background-color: var(--theme-gray);
+    border: 0.15em solid var(--theme-black);
+    border-radius: 0.4em;
+
+    color: var(--theme-black);
+    font: 700 calc(0.2 * var(--card-width)) "Signika", sans-serif;
+    text-shadow: 0.1em 0.1em 0.1em #0003;
+
+    cursor: pointer;
+    transition: 0.1s background-color;
+}
+
+#autocomplete-btn:hover  { background-color: var(--theme-white); }
+#autocomplete-btn:active { background-color: var(--theme-gray); }
+
 /**************************** Card styling ****************************/
 .card {
     position: relative;

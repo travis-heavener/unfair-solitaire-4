@@ -1,4 +1,4 @@
-import { addScore, canStackOnElem, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { addScore, canStackOnElem, checkForAutocomplete, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -34,24 +34,27 @@ export class Card {
     getMovingStackChlidCount() { return this.movingStackElem?.childElementCount ?? 0; }
     // Visual modifiers
     uncover(doAnimation = false) {
-        if (!this.isCovered)
-            return;
-        // Play sound
-        playSound("flip");
-        this.isCovered = false;
-        // Play uncover animation
-        if (doAnimation) {
-            lockAnimations(); // Lock out animations
-            $(this.element).css("animation", "uncoverCard 220ms linear"); // Queue animation
-            setTimeout(() => $(this.element).removeClass("covered"), 110); // Uncover halfway through
-            setTimeout(() => {
-                $(this.element).css("animation", "");
-                unlockAnimations(); // Unlock animations
-            }, 220);
-        }
-        else {
-            $(this.element).removeClass("covered");
-        }
+        return new Promise(res => {
+            if (!this.isCovered)
+                return res();
+            playSound("flip"); // Play sound
+            this.isCovered = false;
+            // Play uncover animation
+            if (doAnimation) {
+                lockAnimations(); // Lock out animations
+                $(this.element).css("animation", "uncoverCard 220ms linear"); // Queue animation
+                setTimeout(() => $(this.element).removeClass("covered"), 110); // Uncover halfway through
+                setTimeout(() => {
+                    $(this.element).css("animation", "");
+                    unlockAnimations(); // Unlock animations
+                    res();
+                }, 220);
+            }
+            else {
+                $(this.element).removeClass("covered");
+                res();
+            }
+        });
     }
     cover() {
         this.isCovered = true;
@@ -109,7 +112,7 @@ export class Card {
         $(this.movingStackElem).css({ "left": x, "top": y });
     }
     // Handles mouse up
-    handleMouseUp() {
+    async handleMouseUp() {
         // Check for drop location
         const targetElement = getOverlappingElements(this);
         if (targetElement === null || targetElement === this.originalParent || !canStackOnElem(this, targetElement)) {
@@ -173,18 +176,16 @@ export class Card {
         this.movingStackElem.innerHTML = "";
         // Uncover previous card
         if ($(this.originalParent).hasClass("tableau"))
-            uncoverTopOfColumn(parseInt(this.originalParent.id.replace("tableau-", "")));
-        // Play sound regardless
-        playSound("flip");
+            await uncoverTopOfColumn(parseInt(this.originalParent.id.replace("tableau-", "")));
+        else // Play sound regardless
+            playSound("flip");
         // Reset moving stack element
         $(this.movingStackElem).remove();
         this.originalParent = this.movingStackElem = this.movingCardOriginalPositions = this.clickOffset = null;
         // Disable events
-        $(window).off("mousemove");
-        $(window).off("mouseup");
-        // Save the current history state
-        saveHistoryState();
-        // Check for win condition
-        checkForWinCondition();
+        $(window).off("mousemove mouseup");
+        saveHistoryState(); // Save the current history state
+        checkForAutocomplete(); // Check for autocomplete
+        checkForWinCondition(); // Check for win condition
     }
 }
