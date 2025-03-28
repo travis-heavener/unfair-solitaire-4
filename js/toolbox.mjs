@@ -31,9 +31,11 @@ export const uncoverTopOfColumn = (colNum) => {
         const index = getCardIndexFromElem(column.lastChild);
         const wasCovered = cards[index].getIsCovered();
         cards[index].uncover(true); // Handles locking the animation on its own
-        // Update state
-        if (wasCovered)
+        // Update state & points
+        if (wasCovered) {
             updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
+            addScore(5); // Uncovered card in tableau
+        }
     }
 };
 // Returns either red or black based on the SuitType
@@ -86,6 +88,8 @@ export const cycleDeckToNext = () => {
     if (stock.childElementCount === 0) { // Move all cards back from the empty deck
         // Play sound
         playSound("shuffle");
+        // Update score
+        addScore(-100); // Cycling deck
         [...waste.children].forEach(elem => {
             // Get card
             const index = getCardIndexFromElem(elem);
@@ -261,8 +265,10 @@ let currentHistoryState = [];
 export const updateHistoryState = (data) => currentHistoryState.push(data);
 // Adds the current state to the user's move history
 export const saveHistoryState = () => {
-    if (currentHistoryState.length)
+    if (currentHistoryState.length) {
         moveHistory.push(currentHistoryState);
+        incrementMoves(); // Count move
+    }
     currentHistoryState = []; // Reset history state
     // Shift the oldest element
     if (moveHistory.length > MAX_HISTORY_LENGTH)
@@ -279,8 +285,8 @@ export const undoLastMove = () => {
     // Lookup last move
     if (moveHistory.length === 0)
         return;
-    // Play sound
-    playSound("flip");
+    playSound("flip"); // Play sound
+    incrementMoves(); // Count move
     const lastState = moveHistory.pop();
     // Handle each state change
     for (let i = 0; i < lastState.length; ++i) {
@@ -315,6 +321,8 @@ export const undoLastMove = () => {
             }, 150);
         }
     }
+    // Update score
+    addScore(-15); // -15 penalty for undoing
 };
 // Starts the game clock
 let _clockInterval = null;
@@ -327,6 +335,9 @@ export const startGameClock = () => {
     _clockInterval = setInterval(() => {
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
+        // Subtract 2 from score for every 10 seconds that elapse
+        if (elapsedSec % 10 === 0)
+            addScore(-2);
     }, 1e3);
 };
 // Used to stop the game clock
@@ -349,4 +360,24 @@ const sounds = {
 export const playSound = (name) => {
     sounds[name][~~(Math.random() * sounds[name].length)].play()
         .catch(() => { }); // Ignore, cannot autoplay
+};
+// Scoring & moves counting functionality below
+let playerScore = 0, playerMoves = 0;
+export const addScore = (pts) => {
+    playerScore += pts;
+    $("#score-display").text(playerScore);
+};
+export const incrementMoves = () => {
+    ++playerMoves;
+    $("#moves-display").text(playerMoves);
+};
+export const getScore = () => playerScore;
+export const getMoves = () => playerMoves;
+export const resetScore = () => {
+    playerScore = 0;
+    $("#score-display").text(0);
+};
+export const resetMoves = () => {
+    playerMoves = 0;
+    $("#moves-display").text(0);
 };

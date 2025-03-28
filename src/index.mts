@@ -1,4 +1,4 @@
-import { cards, clearMoveHistory, cycleDeckToNext, generateCards, startGameClock, undoLastMove } from "./toolbox.mjs";
+import { cards, clearMoveHistory, cycleDeckToNext, generateCards, resetMoves, resetScore, startGameClock, undoLastMove } from "./toolbox.mjs";
 
 $(() => {
     // Load events
@@ -21,8 +21,15 @@ const startGame = () => {
     // Hide win screen
     $("#win-container").css("display", "");
 
-    // Clear move history
+    // Reset control elements
+    $("#score-display").text(0);
+    $("#moves-display").text(0);
+    $("#time-display").text("0:00");
+
+    // Reset state & stats
     clearMoveHistory();
+    resetScore();
+    resetMoves();
 
     // Clear board
     while (cards.length) cards.pop().remove();
