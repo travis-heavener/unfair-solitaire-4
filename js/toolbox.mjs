@@ -39,6 +39,7 @@ export const startGame = (difficulty) => {
 };
 // Invoke to reset the game
 export const restartGame = () => {
+    unbindEvents();
     bindEvents();
     setRandomHandicapID(); // Select handicap
     // Hide win screen & autocomplete button
@@ -54,6 +55,7 @@ export const restartGame = () => {
     resetScore();
     resetMoves();
     // Clear board
+    console.log(cards);
     while (cards.length)
         cards.pop().remove();
     // Generate cards
