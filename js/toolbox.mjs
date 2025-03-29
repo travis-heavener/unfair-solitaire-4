@@ -43,6 +43,7 @@ export const startGame = () => {
     $("#score-display, #moves-display").text(0);
     $("#time-display").text("0:00");
     // Reset state & stats
+    restartGameClock();
     clearMoveHistory();
     resetScore();
     resetMoves();
@@ -308,7 +309,7 @@ export const checkForWinCondition = () => {
 // Used to trigger a win sequence
 const triggerWinSequence = () => {
     lockAnimations(); // Lock animations
-    stopGameClock(); // Stop clock
+    restartGameClock(); // Stop clock
     unbindEvents(); // Unbind events
     // Update high score
     const highScore = Math.max(getHighScore(), getScore());
@@ -483,24 +484,45 @@ const undoLastMove = () => {
 /**************************** START VISUAL/AURAL STATS ****************************/
 // Starts the game clock
 let _clockInterval = null;
+let lastClockUpdateTS = null, lastClockPauseTS = null;
 let elapsedSec = 0;
 const startGameClock = () => {
     // Stop any running intervals
     if (_clockInterval !== null)
         clearInterval(_clockInterval);
     const jTimeDisplay = $("#time-display");
-    _clockInterval = setInterval(() => {
+    const update = () => {
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
+        lastClockUpdateTS = Date.now(); // Update last updated ts
+        console.log("asdf");
         // Subtract 2 from score for every 10 seconds that elapse
         if (elapsedSec % 10 === 0)
             addScore(-2);
-    }, 1e3);
+    };
+    // Queue next update if paused
+    if (lastClockPauseTS !== null) {
+        const delay = 1e3 - (lastClockPauseTS - lastClockUpdateTS);
+        lastClockPauseTS = null;
+        _clockInterval = setTimeout(() => {
+            update();
+            _clockInterval = setInterval(update, 1e3);
+        }, delay);
+    }
+    else {
+        _clockInterval = setInterval(update, 1e3);
+    }
 };
 // Used to stop the game clock
-const stopGameClock = () => {
+const restartGameClock = () => {
     clearInterval(_clockInterval);
     elapsedSec = 0;
+    _clockInterval = null;
+};
+// Used to pause the clock
+const pauseGameClock = () => {
+    clearInterval(_clockInterval);
+    lastClockPauseTS = Date.now();
     _clockInterval = null;
 };
 // Sound functionality below
@@ -556,10 +578,13 @@ const bindEvents = () => {
     $("#play-again-btn").on("click", () => startGame()); // Bind play again button
     $("#undo-btn").on("click", () => undoLastMove()); // Bind undo button
     $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
+    $(window).on("blur", () => pauseGameClock()); // Pause on lost focus
+    $(window).on("focus", () => startGameClock()); // Resume clock on gained focus
 };
 const unbindEvents = () => {
     $("#stock").off("click"); // Bind cycle deck to stock
     $("#undo-btn").off("click"); // Bind undo button
     $("#reset-btn").off("mousedown"); // Bind reset button
+    $(window).off("blur focus"); // Pause on lost focus
 };
 /**************************** END EVENT LISTENERS ****************************/ 
