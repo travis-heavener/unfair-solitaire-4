@@ -8,6 +8,7 @@ let animLocks = 0;
 export const lockAnimations = () => void(++animLocks);
 export const unlockAnimations = () => void(animLocks = Math.max(0, animLocks-1));
 export const isAnimLocked = () => animLocks > 0;
+const wait = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 
 /**************************** START PROTOTYPES ****************************/
 
@@ -457,6 +458,7 @@ export const checkForAutocomplete = () => {
 
     // Base case, is able to autocomplete
     $("#autocomplete-btn").css("display", "block");
+    $("#autocomplete-btn").off("click"); // Prevent adding multiple event listeners
     $("#autocomplete-btn").one("click", function() {
         $(this).remove();
         unbindEvents(); // Unbind events
@@ -491,15 +493,19 @@ const beginAutocomplete = async () => {
                 if (canStackOnElem(card, foundation[j])) {
                     // Move to foundation
                     await animateCardElemMove(card.getElement(), foundation[j]);
+                    await wait(100);
                     continue outerLoop;
                 }
             }
         }
 
+        // Skip checking waste if there aren't any cards up there
+        if (waste.childElementCount === 0 && stock.childElementCount === 0) continue;
+
         // Check the top of the waste
         if (waste.childElementCount === 0 && stock.childElementCount > 0) {
-            await moveWasteToStock(); // Reset deck
             await uncoverCardFromStock(); // Draw first card from stock
+            await wait(100);
         }
 
         const topWasteIndex = getCardIndexFromElem(waste.lastChild);
@@ -508,14 +514,18 @@ const beginAutocomplete = async () => {
             if (canStackOnElem(topWasteCard, foundation[i])) {
                 // Move to foundation
                 await animateCardElemMove(topWasteCard.getElement(), foundation[i]);
+                await wait(100);
                 continue outerLoop;
             }
         }
 
         // Otherwise, can't stack on the foundation yet so cycle the stock to next card
-        if (stock.childElementCount === 0)
+        if (stock.childElementCount === 0) {
             await moveWasteToStock(); // Reset deck
+            await wait(100);
+        }
         await uncoverCardFromStock(); // Cycle stock to next card
+        await wait(100);
     } while (!checkForWinCondition());
 };
 
