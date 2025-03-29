@@ -1,26 +1,74 @@
 import { Card } from "./card.mjs";
+import { addScore, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setHighScore } from "./player-data.mjs";
 const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
-// Used to generate a new array of cards
+// Locks and unlocks the animation state to prevent events from firing
+let animLocks = 0;
+export const lockAnimations = () => void (++animLocks);
+export const unlockAnimations = () => void (animLocks = Math.max(0, animLocks - 1));
+export const isAnimLocked = () => animLocks > 0;
+/**************************** START PROTOTYPES ****************************/
+Array.prototype.random = function () {
+    return this[Math.floor(Math.random() * this.length)];
+};
+Array.prototype.shuffle = function () {
+    let currentPos = this.length;
+    while (currentPos != 0) {
+        const newPos = Math.floor(Math.random() * currentPos--);
+        [this[currentPos], this[newPos]] = [this[newPos], this[currentPos]];
+    }
+    return this;
+};
+/**************************** END TYPES ****************************/
+/**************************** START CARD GENERATION ****************************/
+const cards = [];
 const SUITS = ["hearts", "diamonds", "spades", "clubs"];
 const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+// Used to generate a new array of cards
 const generateCards = (cards) => {
     for (let s = 0; s < 4; ++s)
         for (let v = 0; v < 13; ++v)
             cards.push(new Card(SUITS[s], VALUES[v]));
     // Shuffle the deck
-    shuffleCards(cards);
-    cards.forEach((card, i) => card.setIndex(i));
+    cards.shuffle().forEach((card, i) => card.setIndex(i));
 };
-// Shuffles an array
-const shuffleCards = (arr) => {
-    let currentPos = arr.length;
-    while (currentPos != 0) {
-        const newPos = ~~(Math.random() * currentPos--);
-        [arr[currentPos], arr[newPos]] = [arr[newPos], arr[currentPos]];
+// Invoke to start the game
+export const startGame = () => {
+    bindEvents();
+    // Hide win screen & autocomplete button
+    $("#win-container, #autocomplete-btn").css("display", "");
+    // Disable autocomplete button
+    $("#autocomplete-btn").off("click");
+    // Reset control elements
+    $("#score-display, #moves-display").text(0);
+    $("#time-display").text("0:00");
+    // Reset state & stats
+    clearMoveHistory();
+    resetScore();
+    resetMoves();
+    // Clear board
+    while (cards.length)
+        cards.pop().remove();
+    // Generate cards
+    generateCards(cards);
+    // Fill tableau
+    const jTableaus = [...$(".tableau")];
+    const jStock = $("#stock");
+    for (let c = 0, i = 0; c < 7; ++c) {
+        for (let r = 0; r < c + 1; ++r) {
+            const card = cards[i++];
+            jTableaus[c].append(card.getElement());
+            if (r === c)
+                card.uncover(); // Uncover top card
+        }
     }
+    // Push remaining cards to the deck
+    for (let i = 51; i >= 28; --i)
+        jStock.append(cards[i].getElement());
+    // Start clock
+    startGameClock();
 };
-// Generate and store the cards
-const cards = [];
+/**************************** END CARD GENERATION ****************************/
+/**************************** START CARD HELPERS ****************************/
 // Returns the numeric card index from an element's data-index attribute
 export const getCardIndexFromElem = (elem) => parseInt(elem.getAttribute("data-index"));
 // Used to uncover the bottom card in the tableau, if it exists
@@ -47,6 +95,8 @@ export const uncoverTopOfColumn = (colNum) => {
 };
 // Returns either red or black based on the SuitType
 const getColorFromSuit = (suit) => (suit === "hearts" || suit === "diamonds") ? "red" : "black";
+/**************************** END CARD HELPERS ****************************/
+/**************************** START CARD ELEMENT METHODS ****************************/
 // Returns true if the card can be stacked on the given element, false otherwise
 export const canStackOnElem = (card, elem) => {
     if ($(elem).hasClass("foundation")) { // Handle ace stack
@@ -153,6 +203,81 @@ const uncoverCardFromStock = () => {
         updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": stock, "lastPosition": lastPosition });
     });
 };
+// Used to get the element that best overlaps the current card element
+export const getOverlappingElements = (card) => {
+    // Get the card's bounding box
+    const cardElem = card.getElement();
+    const bounds = cardElem.getBoundingClientRect();
+    // Iterate over potential matches
+    const dropLocations = $(".foundation, .tableau");
+    let overlapArea = 0; // The overlap of the best match
+    let bestDropLocation = null;
+    for (let i = 0; i < dropLocations.length; ++i) {
+        const elem = dropLocations[i];
+        const targetBounds = elem.getBoundingClientRect();
+        if (bounds.right > targetBounds.left && bounds.left < targetBounds.right &&
+            bounds.bottom > targetBounds.top && bounds.top < targetBounds.bottom) {
+            // Calculate overlap
+            const width = Math.min(bounds.right, targetBounds.right) - Math.max(bounds.left, targetBounds.left);
+            const height = Math.min(bounds.bottom, targetBounds.bottom) - Math.max(bounds.top, targetBounds.top);
+            const area = width * height;
+            if (area > overlapArea) {
+                overlapArea = area;
+                bestDropLocation = elem;
+            }
+        }
+    }
+    // Return the matching elements
+    return bestDropLocation;
+};
+// Used to animate the moving of a card element to a new parent
+export const animateCardElemMove = (elem, newParent, originalParent = null, countScore = true) => {
+    return new Promise(res => {
+        if (!originalParent)
+            originalParent = elem.parentElement;
+        const startOffset = $(elem).offset(); // Get offset before appending to new parent
+        $(newParent).append(elem); // Move to parent
+        lockAnimations(); // Lock animations
+        playSound("flip"); // Play flip sound
+        // Handle animation to previous position
+        const endOffset = $(elem).offset();
+        $(elem).css({
+            "--start-top": (startOffset.top - endOffset.top) + "px",
+            "--start-left": (startOffset.left - endOffset.left) + "px",
+            "animation": "cardMoveBackToStart 200ms ease"
+        });
+        // Remove animation once done
+        setTimeout(() => {
+            $(elem).css({ "--start-top": "", "--start-left": "", "animation": "" });
+            unlockAnimations(); // Unlock animations
+            res();
+        }, 200);
+        // Add score
+        incrementMoves();
+        if (!countScore)
+            return;
+        const card = cards[getCardIndexFromElem(elem)];
+        if (originalParent.id === "waste" && $(newParent).hasClass("tableau")) {
+            // Moving from deck/waste to tableau
+            addScore(5);
+        }
+        else if (!$(originalParent).hasClass("foundation") && $(newParent).hasClass("foundation")) {
+            // Moving from stock/waste or tableau to foundation
+            addScore(10);
+        }
+        else if ($(originalParent).hasClass("tableau") && $(newParent).hasClass("tableau") &&
+            !(originalParent.childElementCount === 0 && card.getValue() === "K")) {
+            // Prevent adding score for moving kings stacks around
+            addScore(3); // Moving between columns in the tableau
+        }
+        else if ($(originalParent).hasClass("foundation") && !$(newParent).hasClass("foundation")) {
+            // Moving off of foundation (to tableau)
+            addScore(-15);
+        }
+    });
+};
+/**************************** END CARD ELEMENT METHODS ****************************/
+/**************************** START CONDITION CHECKERS ****************************/
 // Returns true if a win condition is met, false otherwise
 export const checkForWinCondition = () => {
     // Check for all cards stacked on aces
@@ -185,8 +310,8 @@ const triggerWinSequence = () => {
     stopGameClock(); // Stop clock
     unbindEvents(); // Unbind events
     // Update high score
-    const highScore = Math.max(parseInt(localStorage.getItem("uf4.highScore") ?? "0"), getScore());
-    localStorage.setItem("uf4.highScore", highScore + "");
+    const highScore = Math.max(getHighScore(), getScore());
+    setHighScore(highScore);
     // Unbind card events to lock gameplay
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
@@ -230,209 +355,8 @@ const triggerWinSequence = () => {
     setTimeout(() => {
         $("#win-container").css("display", "flex");
         unlockAnimations(); // Unlock animations
-        // Update high score elem
-        $("#high-score-display").text(localStorage.getItem("uf4.highScore"));
+        $("#high-score-display").text(getHighScore()); // Update high score elem
     }, children.length * 100 + 500);
-};
-// Locks and unlocks the animation state to prevent events from firing
-let animLocks = 0;
-export const lockAnimations = () => void (++animLocks);
-export const unlockAnimations = () => void (animLocks = Math.max(0, animLocks - 1));
-export const isAnimLocked = () => animLocks > 0;
-// The last few moves' data
-const moveHistory = [];
-// The current history data
-let currentHistoryState = [];
-// Adds an update to the current state
-export const updateHistoryState = (data) => currentHistoryState.push(data);
-// Adds the current state to the user's move history
-export const saveHistoryState = () => {
-    if (currentHistoryState.length) {
-        moveHistory.push(currentHistoryState);
-        incrementMoves(); // Count move
-    }
-    currentHistoryState = []; // Reset history state
-    // Shift the oldest element
-    if (moveHistory.length > MAX_HISTORY_LENGTH)
-        moveHistory.shift();
-};
-// Clears the move history
-const clearMoveHistory = () => { while (moveHistory.length)
-    moveHistory.pop(); };
-// Undoes the last move up to 20 times
-const undoLastMove = () => {
-    // Abort if anim locked
-    if (isAnimLocked() || moveHistory.length === 0)
-        return;
-    // Handle each state change
-    const lastState = moveHistory.pop();
-    for (const stateData of lastState) {
-        const card = cards[stateData.cardIndex];
-        // Handle covering/uncovering
-        if (stateData.hasBeenCovered)
-            card.uncover();
-        else if (stateData.hasBeenUncovered)
-            card.cover();
-        // Undo move
-        if (stateData.originalParent !== null)
-            animateCardElemMove(card.getElement(), stateData.originalParent, null, false);
-    }
-    playSound("flip"); // Play sound
-    incrementMoves(); // Count move
-    addScore(-15); // -15 penalty for undoing
-    checkForAutocomplete(); // Remove autocomplete icon if needed
-};
-// Starts the game clock
-let _clockInterval = null;
-let elapsedSec = 0;
-const startGameClock = () => {
-    // Stop any running intervals
-    if (_clockInterval !== null)
-        clearInterval(_clockInterval);
-    const jTimeDisplay = $("#time-display");
-    _clockInterval = setInterval(() => {
-        ++elapsedSec;
-        jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
-        // Subtract 2 from score for every 10 seconds that elapse
-        if (elapsedSec % 10 === 0)
-            addScore(-2);
-    }, 1e3);
-};
-// Used to stop the game clock
-const stopGameClock = () => {
-    clearInterval(_clockInterval);
-    elapsedSec = 0;
-    _clockInterval = null;
-};
-// Sound functionality below
-const createAudioElem = (src) => {
-    const elem = document.createElement("AUDIO");
-    elem.src = `/res/audio/${src}.mp3`;
-    return elem;
-};
-const sounds = {
-    "shuffle": [createAudioElem("shuffle1"), createAudioElem("shuffle2")],
-    "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")]
-};
-// Plays a random sound from the category provided
-export const playSound = (name) => {
-    sounds[name][~~(Math.random() * sounds[name].length)].play()
-        .catch(() => { }); // Ignore, cannot autoplay
-};
-// Scoring & moves counting functionality below
-let playerScore = 0, playerMoves = 0;
-const addScore = (pts) => $("#score-display").text(playerScore += pts);
-const incrementMoves = () => $("#moves-display").text(++playerMoves);
-const getScore = () => playerScore;
-const resetScore = () => $("#score-display").text(playerScore = 0);
-const resetMoves = () => $("#moves-display").text(playerMoves = 0);
-// Used to get the element that best overlaps the current card element
-export const getOverlappingElements = (card) => {
-    // Get the card's bounding box
-    const cardElem = card.getElement();
-    const bounds = cardElem.getBoundingClientRect();
-    // Iterate over potential matches
-    const dropLocations = $(".foundation, .tableau");
-    let overlapArea = 0; // The overlap of the best match
-    let bestDropLocation = null;
-    for (let i = 0; i < dropLocations.length; ++i) {
-        const elem = dropLocations[i];
-        const targetBounds = elem.getBoundingClientRect();
-        if (bounds.right > targetBounds.left && bounds.left < targetBounds.right &&
-            bounds.bottom > targetBounds.top && bounds.top < targetBounds.bottom) {
-            // Calculate overlap
-            const width = Math.min(bounds.right, targetBounds.right) - Math.max(bounds.left, targetBounds.left);
-            const height = Math.min(bounds.bottom, targetBounds.bottom) - Math.max(bounds.top, targetBounds.top);
-            const area = width * height;
-            if (area > overlapArea) {
-                overlapArea = area;
-                bestDropLocation = elem;
-            }
-        }
-    }
-    // Return the matching elements
-    return bestDropLocation;
-};
-// Handles resetting the game
-let lastResetMouseDown = null;
-let resetTooltipTimeout = null;
-const handleResetMouseDown = () => {
-    // Clear reset tooltip timeout
-    if (resetTooltipTimeout !== null) {
-        clearTimeout(resetTooltipTimeout);
-        $("#reset-btn").removeClass("scanning"); // Fix animation
-    }
-    // Update last mouse down timestamp
-    lastResetMouseDown = Date.now();
-    // Add visual indicator
-    $("#reset-btn").addClass("scanning");
-    $("#reset-tooltip").css("display", "");
-    // Bind mouse up
-    $(window).one("mouseup", () => handleResetMouseUp());
-};
-const handleResetMouseUp = () => {
-    // Measure duration
-    $("#reset-btn").removeClass("scanning");
-    if (Date.now() - lastResetMouseDown > 500) {
-        startGame(); // Reset
-        lastResetMouseDown = null;
-    }
-    else {
-        // Show notification
-        $("#reset-tooltip").css("display", "block");
-        // Queue hide again
-        resetTooltipTimeout = setTimeout(() => {
-            $("#reset-tooltip").css("display", "");
-            resetTooltipTimeout = null; // Reset timeout ID
-        }, 2200);
-    }
-};
-const bindEvents = () => {
-    $("#stock").on("click", () => cycleDeckToNext()); // Bind cycle deck to stock
-    $("#play-again-btn").on("click", () => startGame()); // Bind play again button
-    $("#undo-btn").on("click", () => undoLastMove()); // Bind undo button
-    $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
-};
-const unbindEvents = () => {
-    $("#stock").off("click"); // Bind cycle deck to stock
-    $("#undo-btn").off("click"); // Bind undo button
-    $("#reset-btn").off("mousedown"); // Bind reset button
-};
-// Invoke to start the game
-export const startGame = () => {
-    bindEvents();
-    // Hide win screen & autocomplete button
-    $("#win-container, #autocomplete-btn").css("display", "");
-    // Disable autocomplete button
-    $("#autocomplete-btn").off("click");
-    // Reset control elements
-    $("#score-display, #moves-display").text(0);
-    $("#time-display").text("0:00");
-    // Reset state & stats
-    clearMoveHistory();
-    resetScore();
-    resetMoves();
-    // Clear board
-    while (cards.length)
-        cards.pop().remove();
-    // Generate cards
-    generateCards(cards);
-    // Fill tableau
-    const jTableaus = [...$(".tableau")];
-    const jStock = $("#stock");
-    for (let c = 0, i = 0; c < 7; ++c) {
-        for (let r = 0; r < c + 1; ++r) {
-            const card = cards[i++];
-            jTableaus[c].append(card.getElement());
-            if (r === c)
-                card.uncover(); // Uncover top card
-        }
-    }
-    // Push remaining cards to the deck
-    for (let i = 51; i >= 28; --i)
-        jStock.append(cards[i].getElement());
-    // Start clock
-    startGameClock();
 };
 // Used to check if autocomplete is available
 export const checkForAutocomplete = () => {
@@ -502,49 +426,130 @@ const beginAutocomplete = async () => {
         await uncoverCardFromStock(); // Cycle stock to next card
     } while (!checkForWinCondition());
 };
-// Used to animate the moving of a card element to a new parent
-export const animateCardElemMove = (elem, newParent, originalParent = null, countScore = true) => {
-    return new Promise(res => {
-        if (!originalParent)
-            originalParent = elem.parentElement;
-        const startOffset = $(elem).offset(); // Get offset before appending to new parent
-        $(newParent).append(elem); // Move to parent
-        lockAnimations(); // Lock animations
-        playSound("flip"); // Play flip sound
-        // Handle animation to previous position
-        const endOffset = $(elem).offset();
-        $(elem).css({
-            "--start-top": (startOffset.top - endOffset.top) + "px",
-            "--start-left": (startOffset.left - endOffset.left) + "px",
-            "animation": "cardMoveBackToStart 200ms ease"
-        });
-        // Remove animation once done
-        setTimeout(() => {
-            $(elem).css({ "--start-top": "", "--start-left": "", "animation": "" });
-            unlockAnimations(); // Unlock animations
-            res();
-        }, 200);
-        // Add score
-        incrementMoves();
-        if (!countScore)
-            return;
-        const card = cards[getCardIndexFromElem(elem)];
-        if (originalParent.id === "waste" && $(newParent).hasClass("tableau")) {
-            // Moving from deck/waste to tableau
-            addScore(5);
-        }
-        else if (!$(originalParent).hasClass("foundation") && $(newParent).hasClass("foundation")) {
-            // Moving from stock/waste or tableau to foundation
-            addScore(10);
-        }
-        else if ($(originalParent).hasClass("tableau") && $(newParent).hasClass("tableau") &&
-            !(originalParent.childElementCount === 0 && card.getValue() === "K")) {
-            // Prevent adding score for moving kings stacks around
-            addScore(3); // Moving between columns in the tableau
-        }
-        else if ($(originalParent).hasClass("foundation") && !$(newParent).hasClass("foundation")) {
-            // Moving off of foundation (to tableau)
-            addScore(-15);
-        }
-    });
+/**************************** END CONDITION CHECKERS ****************************/
+/**************************** START MOVE HISTORY ****************************/
+const moveHistory = []; // The last few moves' data
+let currentHistoryState = []; // The current history data
+// Adds an update to the current state
+export const updateHistoryState = (data) => currentHistoryState.push(data);
+// Adds the current state to the user's move history
+export const saveHistoryState = () => {
+    if (currentHistoryState.length) {
+        moveHistory.push(currentHistoryState);
+        incrementMoves(); // Count move
+    }
+    currentHistoryState = []; // Reset history state
+    // Shift the oldest element
+    if (moveHistory.length > MAX_HISTORY_LENGTH)
+        moveHistory.shift();
 };
+// Clears the move history
+const clearMoveHistory = () => { while (moveHistory.length)
+    moveHistory.pop(); };
+// Undoes the last move up to 20 times
+const undoLastMove = () => {
+    // Abort if anim locked
+    if (isAnimLocked() || moveHistory.length === 0)
+        return;
+    // Handle each state change
+    const lastState = moveHistory.pop();
+    for (const stateData of lastState) {
+        const card = cards[stateData.cardIndex];
+        // Handle covering/uncovering
+        if (stateData.hasBeenCovered)
+            card.uncover();
+        else if (stateData.hasBeenUncovered)
+            card.cover();
+        // Undo move
+        if (stateData.originalParent !== null)
+            animateCardElemMove(card.getElement(), stateData.originalParent, null, false);
+    }
+    playSound("flip"); // Play sound
+    incrementMoves(); // Count move
+    addScore(-15); // -15 penalty for undoing
+    checkForAutocomplete(); // Remove autocomplete icon if needed
+};
+/**************************** END MOVE HISTORY ****************************/
+/**************************** START VISUAL/AURAL STATS ****************************/
+// Starts the game clock
+let _clockInterval = null;
+let elapsedSec = 0;
+const startGameClock = () => {
+    // Stop any running intervals
+    if (_clockInterval !== null)
+        clearInterval(_clockInterval);
+    const jTimeDisplay = $("#time-display");
+    _clockInterval = setInterval(() => {
+        ++elapsedSec;
+        jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
+        // Subtract 2 from score for every 10 seconds that elapse
+        if (elapsedSec % 10 === 0)
+            addScore(-2);
+    }, 1e3);
+};
+// Used to stop the game clock
+const stopGameClock = () => {
+    clearInterval(_clockInterval);
+    elapsedSec = 0;
+    _clockInterval = null;
+};
+// Sound functionality below
+const createAudioElem = (src) => {
+    const elem = document.createElement("AUDIO");
+    elem.src = `/res/audio/${src}.mp3`;
+    return elem;
+};
+const sounds = {
+    "shuffle": [createAudioElem("shuffle1"), createAudioElem("shuffle2")],
+    "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")]
+};
+// Plays a random sound from the category provided
+export const playSound = (name) => sounds[name].random().play().catch(() => { });
+/**************************** END VISUAL STATS ****************************/
+/**************************** START EVENT LISTENERS ****************************/
+// Handles resetting the game
+let lastResetMouseDown = null;
+let resetTooltipTimeout = null;
+const handleResetMouseDown = () => {
+    // Clear reset tooltip timeout
+    if (resetTooltipTimeout !== null) {
+        clearTimeout(resetTooltipTimeout);
+        $("#reset-btn").removeClass("scanning"); // Fix animation
+    }
+    // Update last mouse down timestamp
+    lastResetMouseDown = Date.now();
+    // Add visual indicator
+    $("#reset-btn").addClass("scanning");
+    $("#reset-tooltip").css("display", "");
+    // Bind mouse up
+    $(window).one("mouseup", () => handleResetMouseUp());
+};
+const handleResetMouseUp = () => {
+    // Measure duration
+    $("#reset-btn").removeClass("scanning");
+    if (Date.now() - lastResetMouseDown > 500) {
+        startGame(); // Reset
+        lastResetMouseDown = null;
+    }
+    else {
+        // Show notification
+        $("#reset-tooltip").css("display", "block");
+        // Queue hide again
+        resetTooltipTimeout = setTimeout(() => {
+            $("#reset-tooltip").css("display", "");
+            resetTooltipTimeout = null; // Reset timeout ID
+        }, 2200);
+    }
+};
+const bindEvents = () => {
+    $("#stock").on("click", () => cycleDeckToNext()); // Bind cycle deck to stock
+    $("#play-again-btn").on("click", () => startGame()); // Bind play again button
+    $("#undo-btn").on("click", () => undoLastMove()); // Bind undo button
+    $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
+};
+const unbindEvents = () => {
+    $("#stock").off("click"); // Bind cycle deck to stock
+    $("#undo-btn").off("click"); // Bind undo button
+    $("#reset-btn").off("mousedown"); // Bind reset button
+};
+/**************************** END EVENT LISTENERS ****************************/ 
