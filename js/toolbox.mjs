@@ -55,7 +55,6 @@ export const restartGame = () => {
     resetScore();
     resetMoves();
     // Clear board
-    console.log(cards);
     while (cards.length)
         cards.pop().remove();
     // Generate cards

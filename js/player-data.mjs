@@ -17,10 +17,22 @@ export const getDifficulty = () => difficulty;
 let handicapID;
 export const setRandomHandicapID = () => {
     switch (difficulty) {
-        case "Classic": return handicapID = -1;
-        case "Easy": return handicapID = Math.floor(Math.random() * 8) + 1;
-        case "Normal": return handicapID = Math.floor(Math.random() * 6) + 9;
-        case "Insane": return handicapID = Math.floor(Math.random() * 6) + 15;
+        case "Classic":
+            handicapID = -1;
+            break;
+        case "Easy":
+            handicapID = Math.floor(Math.random() * 8) + 1;
+            break;
+        case "Normal":
+            handicapID = Math.floor(Math.random() * 6) + 9;
+            break;
+        case "Insane":
+            handicapID = Math.floor(Math.random() * 6) + 15;
+            break;
     }
+    // Update display
+    if (handicapID !== -1)
+        $("#handicap-id").text("#" + handicapID);
+    return handicapID;
 };
 export const getHandicapID = () => handicapID;
