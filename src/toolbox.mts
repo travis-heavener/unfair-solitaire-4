@@ -1,5 +1,5 @@
 import { Card, SuitType, ValueType } from "./card.mjs";
-import { addScore, DifficultyType, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore } from "./player-data.mjs";
+import { addScore, DifficultyType, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore, setRandomHandicapID } from "./player-data.mjs";
 
 const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 
@@ -66,6 +66,8 @@ export const startGame = (difficulty: DifficultyType) => {
 // Invoke to reset the game
 export const restartGame = () => {
     bindEvents();
+
+    setRandomHandicapID(); // Select handicap
 
     // Hide win screen & autocomplete button
     $("#win-container, #autocomplete-btn").css("display", "");

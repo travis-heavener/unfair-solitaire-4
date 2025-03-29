@@ -13,3 +13,14 @@ export const setHighScore = (score) => localStorage.setItem("uf4.highScore", sco
 let difficulty;
 export const setDifficulty = (diff) => difficulty = diff;
 export const getDifficulty = () => difficulty;
+// Selects a random handicap
+let handicapID;
+export const setRandomHandicapID = () => {
+    switch (difficulty) {
+        case "Classic": return handicapID = -1;
+        case "Easy": return handicapID = Math.floor(Math.random() * 8) + 1;
+        case "Normal": return handicapID = Math.floor(Math.random() * 6) + 9;
+        case "Insane": return handicapID = Math.floor(Math.random() * 6) + 15;
+    }
+};
+export const getHandicapID = () => handicapID;

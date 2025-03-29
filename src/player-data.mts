@@ -19,3 +19,15 @@ export type DifficultyType = "Classic" | "Easy" | "Normal" | "Insane";
 let difficulty: DifficultyType;
 export const setDifficulty = (diff: DifficultyType) => difficulty = diff;
 export const getDifficulty = (): DifficultyType => difficulty;
+
+// Selects a random handicap
+let handicapID: number;
+export const setRandomHandicapID = (): number => {
+    switch (difficulty) {
+        case "Classic": return handicapID = -1;
+        case "Easy":    return handicapID = Math.floor(Math.random() * 8) + 1;
+        case "Normal":  return handicapID = Math.floor(Math.random() * 6) + 9;
+        case "Insane":  return handicapID = Math.floor(Math.random() * 6) + 15;
+    }
+};
+export const getHandicapID = (): number => handicapID;
