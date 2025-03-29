@@ -69,8 +69,9 @@ export const startGame = () => {
     // Start clock
     startGameClock();
 };
-// Pauses and resumes the game
 let isPaused = false;
+const isGamePaused = () => isPaused; // True if the game is paused, false otherwise
+// Pauses and resumes the game
 const togglePauseGame = () => {
     if (!isPaused) {
         pauseGameClock(); // Stop clock
@@ -475,7 +476,7 @@ const clearMoveHistory = () => { while (moveHistory.length)
 // Undoes the last move up to 20 times
 const undoLastMove = () => {
     // Abort if anim locked
-    if (isAnimLocked() || moveHistory.length === 0)
+    if (isAnimLocked() || moveHistory.length === 0 || isGamePaused())
         return;
     // Handle each state change
     const lastState = moveHistory.pop();
