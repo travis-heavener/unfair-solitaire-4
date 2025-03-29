@@ -389,8 +389,9 @@ html {
     position: absolute;
     right: 1em;
     top: 0.5em;
-    color: var(--theme-white);
+    color: var(--theme-gold-light);
     font: 600 calc(0.33* var(--card-width)) "Signika", sans-serif;
+    z-index: 9999999;
 }
 
 /**************************** Animation keyframes ****************************/
