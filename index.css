@@ -309,9 +309,9 @@ html {
     margin-top: calc(-0.85 * var(--card-height));
 }
 
-/**************************** Win container ****************************/
+/**************************** Win & welcome containers ****************************/
 
-#win-container {
+#win-container, #welcome-div {
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -327,22 +327,23 @@ html {
     animation: fadeIn 500ms linear;
 }
 
-#win-container > h1 {
+#win-container, #welcome-div > h1 {
     color: var(--theme-white);
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
     font: 700 calc(0.75 * var(--card-width))/1.5 "Signika", sans-serif;
 }
 
-#win-container > p {
+#win-container, #welcome-div p {
     margin-bottom: 0.3em;
     color: var(--theme-gray);
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
     font: 600 calc(0.27 * var(--card-width)) / 1.5 "Signika", sans-serif;
 }
 
-#win-container > button {
+#win-container, #welcome-div > button {
     margin-bottom: 2em;
     padding: 0.33em 0.5em;
+    min-width: 4em;
 
     background-color: var(--theme-red);
     border: none;
@@ -354,8 +355,35 @@ html {
     transition: 0.1s background-color;
 }
 
-#win-container > button:hover { background-color: var(--theme-red-lighter); }
-#win-container > button:active { background-color: var(--theme-red-darker); }
+#win-container, #welcome-div > button:hover { background-color: var(--theme-red-lighter); }
+#win-container, #welcome-div > button:active { background-color: var(--theme-red-darker); }
+
+#welcome-div {
+    display: flex;
+    animation: none;
+}
+
+#difficulty-select-wrapper {
+    display: flex;
+    margin-bottom: calc(0.1 * var(--card-width));
+    align-items: center;
+    column-gap: calc(0.1 * var(--card-width));
+}
+
+#difficulty-select-wrapper > p { margin: 0 !important; }
+
+#difficulty-select {
+    padding: 0.1em 0.2em;
+
+    background-color: var(--theme-gray);
+    border: none;
+    border-radius: 0.16em;
+
+    color: var(--theme-black);
+    font: 600 calc(0.24 * var(--card-width)) / 1.5 "Signika", sans-serif;
+
+    cursor: pointer;
+}
 
 /**************************** Animation keyframes ****************************/
 

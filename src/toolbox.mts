@@ -1,5 +1,5 @@
 import { Card, SuitType, ValueType } from "./card.mjs";
-import { addScore, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setHighScore } from "./player-data.mjs";
+import { addScore, DifficultyType, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore } from "./player-data.mjs";
 
 const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 
@@ -58,7 +58,13 @@ const generateCards = (cards: Card[]) => {
 };
 
 // Invoke to start the game
-export const startGame = () => {
+export const startGame = (difficulty: DifficultyType) => {
+    setDifficulty(difficulty); // Set difficulty
+    restartGame(); // Pass through to restart game
+};
+
+// Invoke to reset the game
+export const restartGame = () => {
     bindEvents();
 
     // Hide win screen & autocomplete button
@@ -695,7 +701,7 @@ const handleResetMouseUp = () => {
     // Measure duration
     $("#reset-btn").removeClass("scanning");
     if (Date.now() - lastResetMouseDown > 500) {
-        startGame(); // Reset
+        restartGame(); // Reset
         lastResetMouseDown = null;
     } else {
         // Show notification
@@ -711,7 +717,7 @@ const handleResetMouseUp = () => {
 
 const bindEvents = () => {
     $("#stock").on("click", () => cycleDeckToNext()); // Bind cycle deck to stock
-    $("#play-again-btn").on("click", () => startGame()); // Bind play again button
+    $("#play-again-btn").on("click", () => restartGame()); // Bind play again button
     $("#undo-btn").on("click", () => undoLastMove()); // Bind undo button
     $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
     $(window).on("blur", () => pauseGameClock()); // Pause on lost focus

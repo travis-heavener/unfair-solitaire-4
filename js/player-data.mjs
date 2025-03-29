@@ -10,3 +10,6 @@ export const incrementMoves = () => $("#moves-display").text(++playerMoves);
 export const resetMoves = () => $("#moves-display").text(playerMoves = 0);
 export const getHighScore = () => parseInt(localStorage.getItem("uf4.highScore") ?? "0");
 export const setHighScore = (score) => localStorage.setItem("uf4.highScore", score + "");
+let difficulty;
+export const setDifficulty = (diff) => difficulty = diff;
+export const getDifficulty = () => difficulty;
