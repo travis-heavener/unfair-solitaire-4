@@ -102,6 +102,21 @@ export const startGame = () => {
     startGameClock();
 };
 
+// Pauses and resumes the game
+let isPaused = false;
+const togglePauseGame = () => {
+    if (!isPaused) {
+        pauseGameClock(); // Stop clock
+        unbindEvents(); // Unbind events
+        cards.forEach(card => card.removeEventListeners()); // Remove card events
+    } else {
+        startGameClock(); // Start clock
+        bindEvents(); // Unbind events
+        cards.forEach(card => card.bindEvents()); // Remove card events
+    }
+    isPaused = !isPaused;
+};
+
 /**************************** END CARD GENERATION ****************************/
 /**************************** START CARD HELPERS ****************************/
 
@@ -598,7 +613,6 @@ const startGameClock = () => {
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
         lastClockUpdateTS = Date.now(); // Update last updated ts
-        console.log("asdf");
 
         // Subtract 2 from score for every 10 seconds that elapse
         if (elapsedSec % 10 === 0) addScore(-2);
@@ -643,7 +657,13 @@ const sounds = {
 };
 
 // Plays a random sound from the category provided
-export const playSound = (name: "shuffle" | "flip") => sounds[name].random().play().catch(() => {/* Ignore, cannot autoplay */});
+let areSoundsMuted = false;
+export const playSound = (name: "shuffle" | "flip") => {
+    if (areSoundsMuted) return;
+    sounds[name].random().play()
+        .catch(() => {/* Ignore, cannot autoplay */});
+};
+const toggleSounds = () => areSoundsMuted = !areSoundsMuted;
 
 /**************************** END VISUAL STATS ****************************/
 /**************************** START EVENT LISTENERS ****************************/
@@ -694,6 +714,16 @@ const bindEvents = () => {
     $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
     $(window).on("blur", () => pauseGameClock()); // Pause on lost focus
     $(window).on("focus", () => startGameClock()); // Resume clock on gained focus
+
+    // Keyboard events
+    $(window).off("keyup"); // Remove existing listeners
+    $(window).on("keyup", e => {
+        switch (e.code) {
+            case "KeyP": togglePauseGame(); break;
+            case "KeyU": undoLastMove(); break;
+            case "KeyM": toggleSounds(); break;
+        }
+    });
 };
 
 const unbindEvents = () => {

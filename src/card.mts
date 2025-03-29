@@ -91,7 +91,7 @@ export class Card {
     }
 
     // Event bindings
-    private bindEvents() {
+    bindEvents() {
         $(this.element).on("mousedown", e => this.handleMouseDown(e));
     }
 

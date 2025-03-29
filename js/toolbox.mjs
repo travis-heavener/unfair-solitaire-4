@@ -69,6 +69,21 @@ export const startGame = () => {
     // Start clock
     startGameClock();
 };
+// Pauses and resumes the game
+let isPaused = false;
+const togglePauseGame = () => {
+    if (!isPaused) {
+        pauseGameClock(); // Stop clock
+        unbindEvents(); // Unbind events
+        cards.forEach(card => card.removeEventListeners()); // Remove card events
+    }
+    else {
+        startGameClock(); // Start clock
+        bindEvents(); // Unbind events
+        cards.forEach(card => card.bindEvents()); // Remove card events
+    }
+    isPaused = !isPaused;
+};
 /**************************** END CARD GENERATION ****************************/
 /**************************** START CARD HELPERS ****************************/
 // Returns the numeric card index from an element's data-index attribute
@@ -495,7 +510,6 @@ const startGameClock = () => {
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
         lastClockUpdateTS = Date.now(); // Update last updated ts
-        console.log("asdf");
         // Subtract 2 from score for every 10 seconds that elapse
         if (elapsedSec % 10 === 0)
             addScore(-2);
@@ -536,7 +550,14 @@ const sounds = {
     "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")]
 };
 // Plays a random sound from the category provided
-export const playSound = (name) => sounds[name].random().play().catch(() => { });
+let areSoundsMuted = false;
+export const playSound = (name) => {
+    if (areSoundsMuted)
+        return;
+    sounds[name].random().play()
+        .catch(() => { });
+};
+const toggleSounds = () => areSoundsMuted = !areSoundsMuted;
 /**************************** END VISUAL STATS ****************************/
 /**************************** START EVENT LISTENERS ****************************/
 // Handles resetting the game
@@ -580,6 +601,21 @@ const bindEvents = () => {
     $("#reset-btn").on("mousedown", () => handleResetMouseDown()); // Bind reset button
     $(window).on("blur", () => pauseGameClock()); // Pause on lost focus
     $(window).on("focus", () => startGameClock()); // Resume clock on gained focus
+    // Keyboard events
+    $(window).off("keyup"); // Remove existing listeners
+    $(window).on("keyup", e => {
+        switch (e.code) {
+            case "KeyP":
+                togglePauseGame();
+                break;
+            case "KeyU":
+                undoLastMove();
+                break;
+            case "KeyM":
+                toggleSounds();
+                break;
+        }
+    });
 };
 const unbindEvents = () => {
     $("#stock").off("click"); // Bind cycle deck to stock
