@@ -1,5 +1,5 @@
 import { Card } from "./card.mjs";
-import { addScore, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore, setRandomHandicapID } from "./player-data.mjs";
+import { addScore, getHandicapID, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore, setRandomHandicapID } from "./player-data.mjs";
 const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 // Locks and unlocks the animation state to prevent events from firing
 let animLocks = 0;
@@ -482,26 +482,30 @@ const clearMoveHistory = () => { while (moveHistory.length)
     moveHistory.pop(); };
 // Undoes the last move up to 20 times
 const undoLastMove = () => {
-    // Abort if anim locked
-    if (isAnimLocked() || moveHistory.length === 0 || isGamePaused())
-        return;
     // Handle each state change
-    const lastState = moveHistory.pop();
-    for (const stateData of lastState) {
-        const card = cards[stateData.cardIndex];
-        // Handle covering/uncovering
-        if (stateData.hasBeenCovered)
-            card.uncover();
-        else if (stateData.hasBeenUncovered)
-            card.cover();
-        // Undo move
-        if (stateData.originalParent !== null)
-            animateCardElemMove(card.getElement(), stateData.originalParent, null, false);
-    }
-    playSound("flip"); // Play sound
-    incrementMoves(); // Count move
-    addScore(-15); // -15 penalty for undoing
-    checkForAutocomplete(); // Remove autocomplete icon if needed
+    return new Promise((resolve) => {
+        // Abort if anim locked
+        if (isAnimLocked() || moveHistory.length === 0 || isGamePaused())
+            return resolve();
+        const lastState = moveHistory.pop();
+        let animsComplete = 0;
+        for (const stateData of lastState) {
+            const card = cards[stateData.cardIndex];
+            // Handle covering/uncovering
+            if (stateData.hasBeenCovered)
+                card.uncover();
+            else if (stateData.hasBeenUncovered)
+                card.cover();
+            // Undo move
+            if (stateData.originalParent !== null)
+                animateCardElemMove(card.getElement(), stateData.originalParent, null, false)
+                    .then(() => (++animsComplete === lastState.length) ? resolve() : null);
+        }
+        playSound("flip"); // Play sound
+        incrementMoves(); // Count move
+        addScore(-15); // -15 penalty for undoing
+        checkForAutocomplete(); // Remove autocomplete icon if needed
+    });
 };
 /**************************** END MOVE HISTORY ****************************/
 /**************************** START VISUAL/AURAL STATS ****************************/
@@ -509,18 +513,36 @@ const undoLastMove = () => {
 let _clockInterval = null;
 let lastClockUpdateTS = null, lastClockPauseTS = null;
 let elapsedSec = 0;
+let lastHandicap2TS = null; // The timestamp of the last update for handicap #2
 const startGameClock = () => {
     // Stop any running intervals
     if (_clockInterval !== null)
         clearInterval(_clockInterval);
     const jTimeDisplay = $("#time-display");
     const update = () => {
+        if (elapsedSec === 0)
+            lastHandicap2TS = Date.now(); // Set initial handicap ts
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
         lastClockUpdateTS = Date.now(); // Update last updated ts
         // Subtract 2 from score for every 10 seconds that elapse
         if (elapsedSec % 10 === 0)
             addScore(-2);
+        // Handle handicaps
+        switch (getHandicapID()) {
+            case 2: // Undo last two moves every 20 seconds
+                if (Date.now() - lastHandicap2TS > 20_000 && !isAnimLocked()) {
+                    lastHandicap2TS = Date.now();
+                    undoLastMove().then(() => {
+                        lockAnimations(); // Add lock to prevent moving while waiting between undos
+                        wait(150).then(() => {
+                            unlockAnimations(); // Finally, unlock
+                            undoLastMove();
+                        });
+                    });
+                }
+                break;
+        }
     };
     // Queue next update if paused
     if (lastClockPauseTS !== null) {
