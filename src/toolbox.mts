@@ -231,7 +231,6 @@ export const cycleDeckToNext = () => {
 const moveWasteToStock = (): Promise<void> => {
     const stock = $("#stock")[0], waste = $("#waste")[0];
     return new Promise(res => {
-        playSound("shuffle"); // Play sound
         addScore(-50); // Update score for cycling deck
 
         [...waste.children].forEach(elem => {
@@ -249,12 +248,26 @@ const moveWasteToStock = (): Promise<void> => {
         });
 
         // Animate top card, all others will just snap over
-        $(stock.firstChild).css("animation", "moveCardBackToDeck 100ms linear");
+        const durationMS = getHandicapID() === 3 ? 10_000 : 100; // Wait 10s for handicap #3
+        $(stock.firstChild).css("animation", `moveCardBackToDeck ${durationMS}ms linear`);
+
+        // Fix visuals for handicap #3
+        if (getHandicapID() === 3) {
+            playSound("shuffle", 10_000); // Play sound with fixed duration
+            [...stock.children].slice(1).forEach(elem => $(elem).css("opacity", 0));
+        } else {
+            playSound("shuffle"); // Play sound normally
+        }
+
         setTimeout(() => { // Remove animation after complete to prevent re-executing
+            // Fix visuals for handicap #3
+            if (getHandicapID() === 3)
+                [...stock.children].forEach(elem => $(elem).css("opacity", ""));
+
             $(stock.firstChild).css("animation", "");
             unlockAnimations(); // Unlock animations
             res(); // Resolve promise
-        }, 100);
+        }, durationMS);
     });
 };
 
@@ -701,8 +714,16 @@ const sounds = {
 
 // Plays a random sound from the category provided
 let areSoundsMuted = false;
-export const playSound = (name: "shuffle" | "flip") => {
+export const playSound = (name: "shuffle" | "flip", durationMS: number=null) => {
     if (areSoundsMuted) return;
+
+    // Control speed
+    const sound = sounds[name].random();
+    if (durationMS !== null)
+        sound.playbackRate = sound.duration / (durationMS / 1e3);
+    else
+        sound.playbackRate = 1;
+
     sounds[name].random().play()
         .catch(() => {/* Ignore, cannot autoplay */});
 };
