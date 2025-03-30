@@ -102,7 +102,11 @@ export class Card {
     // Setters
     setValue(value: ValueType) {
         this.value = value;
-        $(this.element).find("p").text(this.value);
+        const jValueElem = $(this.element).find("p");
+        jValueElem.text(this.value);
+
+        if (this.value === "Joker") // Shrink font for Jokers
+            jValueElem.css("fontSize", "0.16em");
     }
 
     // Visual modifiers

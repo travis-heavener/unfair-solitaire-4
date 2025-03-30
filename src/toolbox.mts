@@ -119,8 +119,18 @@ export const restartGame = () => {
             do {
                 index = ~~(Math.random() * cards.length);
             } while (indicesChanged.includes(index));
-            cards[i].setValue(VALUES[cardValue]);
+            cards[index].setValue(VALUES[cardValue]);
             indicesChanged.push(index);
+        }
+    } else if (getHandicapID() === 19) { // Random Jokers
+        const suitsChanged = [];
+        for (let i = 0; i < 4; ++i) {
+            let index: number;
+            do {
+                index = ~~(Math.random() * cards.length);
+            } while (suitsChanged.includes(cards[index].getSuit()));
+            cards[index].setValue("Joker");
+            suitsChanged.push(cards[index].getSuit());
         }
     }
 
@@ -218,12 +228,16 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         // Check top card
         const index = getCardIndexFromElem(elem.lastChild);
 
-        // Force to be same suit
-        if (cards[index].getSuit() !== card.getSuit()) return false;
-
         // Force top card value to be 1 less than this card
         const existingValue = cards[index].getValue();
         const newValue = card.getValue();
+
+        // Handle handicaps
+        if (getHandicapID() === 19 && newValue === "Joker")
+            return existingValue === "6" || existingValue === "9"; // Only allow stacking on 6s or 9s
+
+        // Force to be same suit
+        if (cards[index].getSuit() !== card.getSuit()) return false;
 
         return (VALUES.indexOf(existingValue) === (VALUES.indexOf(newValue) - 1));
     } else { // Handle column
@@ -234,9 +248,6 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         const existingColor = getColorFromSuit(cards[index].getSuit());
         const newColor = getColorFromSuit(card.getSuit());
 
-        // Force to be different colors
-        if (newColor === existingColor) return false;
-
         // Force top card value to be 1 more than this card
         const existingValue = cards[index].getValue();
         const newValue = card.getValue();
@@ -244,6 +255,11 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         // Handle handicaps
         if (getHandicapID() === 9 && elem.childElementCount + card.getMovingStackChlidCount() > 8)
             return false; // Prevent stacks of 8 or more
+        else if (getHandicapID() === 19 && newValue === "Joker")
+            return existingValue === "6" || existingValue === "9"; // Only allow stacking on 6s or 9s
+
+        // Force to be different colors
+        if (newColor === existingColor) return false;
 
         return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue)) || (existingValue === "2" && newValue === "A");
     }
