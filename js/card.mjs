@@ -82,10 +82,10 @@ export class Card {
                 this.element = $($.parseHTML(`<div class="card no-select"><h2>${visualValue}</h2></div>`))[0];
                 break;
             case 13: // No values
-                this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><img src="../res/images/${this.suit}-icon.png"></div>`))[0];
+                this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><img src="res/images/${this.suit}-icon.png"></div>`))[0];
                 break;
             default:
-                this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="../res/images/${this.suit}-icon.png"></div>`))[0];
+                this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="res/images/${this.suit}-icon.png"></div>`))[0];
                 break;
         }
         if (this.value === "Fish")
