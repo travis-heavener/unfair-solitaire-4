@@ -372,7 +372,6 @@ export const animateCardElemMove = (elem, newParent, opts) => {
             res();
         }, duration);
         // Add score
-        incrementMoves();
         if (!countScore)
             return;
         const card = cards[getCardIndexFromElem(elem)];
