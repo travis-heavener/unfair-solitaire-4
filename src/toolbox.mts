@@ -146,9 +146,22 @@ export const restartGame = () => {
     }
 
     // Handle handicaps
-    if (getHandicapID() === 16) { // Remove 1-6 cards from the deck
-        let numToRemove = ~~(Math.random() * 6) + 1;
-        while (numToRemove-- > 0) cards.pop();
+    switch (getHandicapID()) {
+        case 16: // Remove 1-6 cards from the deck
+            let numToRemove = ~~(Math.random() * 6) + 1;
+            while (numToRemove-- > 0) cards.pop();
+            break;
+        case 21: { // Random face values
+            for (const card of cards) {
+                const elem = card.getElement();
+                const suit = SUITS.random();
+                $(elem).find("p").text(VALUES.random());
+                ($(elem).find("img")[0] as HTMLImageElement).src = "res/images/" + suit + "-icon.png";
+                $(elem).removeClass("hearts diamonds clubs spades");
+                $(elem).addClass(suit);
+            }
+            break;
+        }
     }
 
     // Push remaining cards to the deck
