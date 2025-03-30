@@ -58,6 +58,9 @@ export class Card {
             `<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="/res/images/${this.suit}-icon.png"></div>`
         ))[0] as any;
 
+        if (this.value === "Fish")
+            $(this.element).addClass("fish");
+
         // Start covered
         this.cover();
 
@@ -115,7 +118,6 @@ export class Card {
                     if (getHandicapID() === 7 && this.value === "Fish") { // Fish card
                         const originalParent = this.element.parentElement;
                         playSound("fish"); // Play sound
-                        $(this.element).css("cursor", "default");
                         this.removeEventListeners(); // Remove event listeners
 
                         // Animate

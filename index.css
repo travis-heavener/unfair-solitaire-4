@@ -296,6 +296,23 @@ html {
 
 .card:not(.covered) { cursor: pointer; }
 
+.card.fish {
+    cursor: default !important;
+    background-image: none !important;
+}
+.card.fish > img { transform: rotate(90deg); }
+
+.card.fish::before {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 3%;
+    left: 5%;
+    background: url("/res/images/spades-icon.png") center 56% / 50% no-repeat;
+    transform: rotate(90deg);
+    content: "";
+}
+
 /**************************** Floating card stack styling ****************************/
 
 #moving-stack { position: absolute; }
