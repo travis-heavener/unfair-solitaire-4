@@ -260,6 +260,7 @@ const uncoverCardFromStock = () => {
         else { // Uncover as-is
             $(stock).append(elem);
             cards[index].uncover(true);
+            unlockAnimations(); // Unlock animations
         }
         // Update state
         updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": stock, "lastPosition": lastPosition });

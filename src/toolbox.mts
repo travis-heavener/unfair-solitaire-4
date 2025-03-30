@@ -323,6 +323,7 @@ const uncoverCardFromStock = (): Promise<void> => {
         } else { // Uncover as-is
             $(stock).append(elem);
             cards[index].uncover(true);
+            unlockAnimations(); // Unlock animations
         }
 
         // Update state
