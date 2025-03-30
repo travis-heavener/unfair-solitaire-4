@@ -107,6 +107,11 @@ export class Card {
     getIsCovered() { return this.isCovered; }
     getMovingStackChlidCount() { return this.movingStackElem?.childElementCount ?? 0; }
     is7ofSpades() { return this.value === "7" && this.suit === "spades"; }
+    // Setters
+    setValue(value) {
+        this.value = value;
+        $(this.element).find("p").text(this.value);
+    }
     // Visual modifiers
     uncover(doAnimation = false) {
         return new Promise(_res => {

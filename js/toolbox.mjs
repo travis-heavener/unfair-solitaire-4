@@ -77,6 +77,18 @@ export const restartGame = () => {
             cards.pop().remove();
         generateCards(cards);
     }
+    if (getHandicapID() === 17) { // Random card replaces its value's worth of others
+        let index = ~~(Math.random() * cards.length);
+        const indicesChanged = [index];
+        const cardValue = VALUES.indexOf(cards[index].getValue());
+        for (let i = 0; i < cardValue; ++i) {
+            do {
+                index = ~~(Math.random() * cards.length);
+            } while (indicesChanged.includes(index));
+            cards[i].setValue(VALUES[cardValue]);
+            indicesChanged.push(index);
+        }
+    }
     // Fill tableau
     const jTableaus = [...$(".tableau")];
     const jStock = $("#stock");
