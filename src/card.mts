@@ -30,6 +30,22 @@ export class Card {
             case 1: // Three Stooges cards
                 visualValue = (this.value === "K") ? "M" : (this.value === "Q") ? "L" : (this.value === "J") ? "C" : this.value;
                 break;
+            case 6: // Roman Numerals
+                switch (this.value) {
+                    case "2": visualValue = "II"; break;
+                    case "3": visualValue = "III"; break;
+                    case "4": visualValue = "IV"; break;
+                    case "5": visualValue = "V"; break;
+                    case "6": visualValue = "VI"; break;
+                    case "7": visualValue = "VII"; break;
+                    case "8": visualValue = "VIII"; break;
+                    case "9": visualValue = "IX"; break;
+                    case "10": visualValue = "X"; break;
+                    case "J": visualValue = "Pc"; break;
+                    case "Q": visualValue = "Rg"; break;
+                    case "K": visualValue = "Rx"; break;
+                }
+                break;
         }
         this.element = $($.parseHTML(
             `<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="/res/images/${this.suit}-icon.png"></div>`
