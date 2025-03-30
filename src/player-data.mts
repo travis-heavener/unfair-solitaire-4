@@ -22,12 +22,15 @@ export const getDifficulty = (): DifficultyType => difficulty;
 
 // Selects a random handicap
 let handicapID: number;
+const easyDifficulties = [1, 2, 3, 4, 5, 6, 7, 8];
+const normalDifficulties = [9, 10, 11, 12, 13, 14, 21];
+const insaneDifficulties = [15, 16, 17, 18, 19, 20];
 export const setRandomHandicapID = (): number => {
     switch (difficulty) {
         case "Classic": handicapID = -1; break;
-        case "Easy":    handicapID = Math.floor(Math.random() * 8) + 1; break;
-        case "Normal":  handicapID = Math.floor(Math.random() * 6) + 9; break;
-        case "Insane":  handicapID = Math.floor(Math.random() * 6) + 15; break;
+        case "Easy":    handicapID = easyDifficulties.random(); break;
+        case "Normal":  handicapID = normalDifficulties.random(); break;
+        case "Insane":  handicapID = insaneDifficulties.random(); break;
     }
 
     // Update display
