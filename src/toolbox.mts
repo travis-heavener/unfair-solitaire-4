@@ -470,6 +470,26 @@ export const animateCardElemMove = (elem: HTMLElement, newParent: HTMLElement, o
     });
 };
 
+// Used to swap two cards' elements
+const swapCardElements = (cardA: Card, cardB: Card) => {
+    const elemA = cardA.getElement(), elemB = cardB.getElement();
+    const parentA = elemA.parentElement, parentB = elemB.parentElement;
+
+    // Swap elements
+    const placeholderA = document.createElement("DIV");
+    const placeholderB = document.createElement("DIV");
+    parentA.replaceChild(placeholderA, elemA);
+    parentB.replaceChild(placeholderB, elemB);
+    parentA.replaceChild(elemB, placeholderA);
+    parentB.replaceChild(elemA, placeholderB);
+
+    // Fix coverage
+    const wasACovered = cardA.getIsCovered();
+    const wasBCovered = cardB.getIsCovered();
+    wasACovered ? cardB.cover() : cardB.uncover();
+    wasBCovered ? cardA.cover() : cardA.uncover();
+};
+
 /**************************** END CARD ELEMENT METHODS ****************************/
 /**************************** START CONDITION CHECKERS ****************************/
 
@@ -746,13 +766,17 @@ let _clockInterval: number = null;
 let lastClockUpdateTS: number = null, lastClockPauseTS: number = null;
 let elapsedSec = 0;
 let lastHandicapTS: number = null; // The timestamp of the last update for handicap #2
+let randomHandicap20Delay: number;
 const startGameClock = () => {
     // Stop any running intervals
     if (_clockInterval !== null) clearInterval(_clockInterval);
 
     const jTimeDisplay = $("#time-display");
     const update = () => {
-        if (elapsedSec === 0) lastHandicapTS = Date.now() - 1e3; // Set initial handicap ts
+        if (elapsedSec === 0) {
+            lastHandicapTS = Date.now() - 1e3; // Set initial handicap ts
+            randomHandicap20Delay = ~~(Math.random() * 25 + 5) * 1_000; // Pick random shuffle delay from 5-30 seconds
+        }
 
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
@@ -771,7 +795,7 @@ const startGameClock = () => {
                         wait(150).then(() => {
                             unlockAnimations(); // Finally, unlock
                             undoLastMove();
-                        })
+                        });
                     });
                 }
                 break;
@@ -791,16 +815,35 @@ const startGameClock = () => {
 
                     // Get previous element
                     const [cardA, cardB] = [cards[indexA], cards[indexB]];
-                    const elemA = cardA.getElement(), elemB = cardB.getElement();
-                    const parentA = elemA.parentElement, parentB = elemB.parentElement;
+                    swapCardElements(cardA, cardB);
+                    playSound("shuffle"); // Play sound
+                }
+                break;
+            case 20: // Randomly swap random cards
+                if (Date.now() - lastHandicapTS > randomHandicap20Delay && !isAnimLocked()) {
+                    lastHandicapTS = Date.now();
+                    randomHandicap20Delay = ~~(Math.random() * 25 + 5) * 1_000; // Pick random shuffle delay from 5-30 seconds
 
-                    // Swap elements
-                    const placeholderA = document.createElement("DIV");
-                    const placeholderB = document.createElement("DIV");
-                    parentA.replaceChild(placeholderA, elemA);
-                    parentB.replaceChild(placeholderB, elemB);
-                    parentA.replaceChild(elemB, placeholderA);
-                    parentB.replaceChild(elemA, placeholderB);
+                    // Get indices
+                    const numIterations = ~~(Math.random() * 5) + 1; // From 1 to 6
+                    const indicesChanged = [];
+                    for (let i = 0; i < numIterations; ++i) {
+                        let indexA: number, indexB: number;
+                        do {
+                            indexA = ~~(Math.random() * cards.length)
+                        } while(indicesChanged.includes(indexA));
+                        indicesChanged.push(indexA);
+
+                        do {
+                            indexB = ~~(Math.random() * cards.length)
+                        } while(indicesChanged.includes(indexB));
+                        indicesChanged.push(indexB);
+
+                        // Get previous element
+                        const [cardA, cardB] = [cards[indexA], cards[indexB]];
+                        console.log(cardA.getValue(), cardB.getValue());
+                        swapCardElements(cardA, cardB);
+                    }
 
                     playSound("shuffle"); // Play sound
                 }
