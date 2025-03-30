@@ -885,7 +885,7 @@ const pauseGameClock = () => {
 // Sound functionality below
 const createAudioElem = (src: string): HTMLAudioElement => {
     const elem = document.createElement("AUDIO") as HTMLAudioElement;
-    elem.src = `/res/audio/${src}.mp3`;
+    elem.src = `../res/audio/${src}.mp3`;
     return elem;
 };
 const sounds = {

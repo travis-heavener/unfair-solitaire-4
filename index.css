@@ -45,7 +45,7 @@ html, body {
 
 html {
     background-color: var(--theme-dark);
-    background-image: url("/res/images/card-texture.png");
+    background-image: url("res/images/card-texture.png");
     overflow: hidden;
 }
 
@@ -109,12 +109,12 @@ html {
 }
 
 /* Add images */
-.foundation:nth-child(1) { background-image: url("/res/images/hearts-icon-dark.png"); }
-.foundation:nth-child(2) { background-image: url("/res/images/diamonds-icon-dark.png"); }
-.foundation:nth-child(3) { background-image: url("/res/images/clubs-icon.png"); }
-.foundation:nth-child(4) { background-image: url("/res/images/spades-icon.png"); }
+.foundation:nth-child(1) { background-image: url("res/images/hearts-icon-dark.png"); }
+.foundation:nth-child(2) { background-image: url("res/images/diamonds-icon-dark.png"); }
+.foundation:nth-child(3) { background-image: url("res/images/clubs-icon.png"); }
+.foundation:nth-child(4) { background-image: url("res/images/spades-icon.png"); }
 
-#stock { background-image: url("/res/images/deck-cycle-icon.png"); background-size: 50%; }
+#stock { background-image: url("res/images/deck-cycle-icon.png"); background-size: 50%; }
 
 /* Adjust placement of deck stacks */
 .foundation > .card,
@@ -306,12 +306,12 @@ html {
 .card.diamonds > p,
 .card.hearts > p { color: var(--theme-red) }
 
-.card.hearts   { background-image: url("/res/images/hearts-icon.png");   }
-.card.diamonds { background-image: url("/res/images/diamonds-icon.png"); }
-.card.clubs    { background-image: url("/res/images/clubs-icon.png");    }
-.card.spades   { background-image: url("/res/images/spades-icon.png");   }
+.card.hearts   { background-image: url("res/images/hearts-icon.png");   }
+.card.diamonds { background-image: url("res/images/diamonds-icon.png"); }
+.card.clubs    { background-image: url("res/images/clubs-icon.png");    }
+.card.spades   { background-image: url("res/images/spades-icon.png");   }
 
-.card.covered { background: url("/res/images/card-texture.png") repeat; }
+.card.covered { background: url("res/images/card-texture.png") repeat; }
 .card.covered > * { display: none; }
 
 .card:not(.covered) { cursor: pointer; }
@@ -328,7 +328,7 @@ html {
     height: 100%;
     top: 3%;
     left: 5%;
-    background: url("/res/images/spades-icon.png") center 56% / 50% no-repeat;
+    background: url("res/images/spades-icon.png") center 56% / 50% no-repeat;
     transform: rotate(90deg);
     content: "";
 }
