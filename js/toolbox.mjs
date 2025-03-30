@@ -456,10 +456,10 @@ const triggerWinSequence = () => {
     const children = [];
     let cardChildrenBuf = cardLocations.map(c => [...c.children]); // Array of all children to remove
     while (cardChildrenBuf.length) {
-        for (let i = 0; i < cardChildrenBuf.length; ++i)
-            children.push(cardChildrenBuf[i].pop());
         // Remove empty card locations
         cardChildrenBuf = cardChildrenBuf.filter(arr => arr.length);
+        for (let i = 0; i < cardChildrenBuf.length; ++i)
+            children.push(cardChildrenBuf[i].pop());
     }
     // Animate each layer of cards
     for (let i = 0; i < children.length; ++i) {
@@ -717,7 +717,6 @@ const startGameClock = () => {
                         indicesChanged.push(indexB);
                         // Get previous element
                         const [cardA, cardB] = [cards[indexA], cards[indexB]];
-                        console.log(cardA.getValue(), cardB.getValue());
                         swapCardElements(cardA, cardB);
                     }
                     playSound("shuffle"); // Play sound

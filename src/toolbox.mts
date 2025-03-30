@@ -542,11 +542,11 @@ const triggerWinSequence = () => {
     const children: HTMLElement[] = [];
     let cardChildrenBuf = cardLocations.map(c => [...c.children]); // Array of all children to remove
     while (cardChildrenBuf.length) {
-        for (let i = 0; i < cardChildrenBuf.length; ++i)
-            children.push(cardChildrenBuf[i].pop() as HTMLElement)
-
         // Remove empty card locations
         cardChildrenBuf = cardChildrenBuf.filter(arr => arr.length);
+
+        for (let i = 0; i < cardChildrenBuf.length; ++i)
+            children.push(cardChildrenBuf[i].pop() as HTMLElement)
     }
 
     // Animate each layer of cards
@@ -842,7 +842,6 @@ const startGameClock = () => {
 
                         // Get previous element
                         const [cardA, cardB] = [cards[indexA], cards[indexB]];
-                        console.log(cardA.getValue(), cardB.getValue());
                         swapCardElements(cardA, cardB);
                     }
 
