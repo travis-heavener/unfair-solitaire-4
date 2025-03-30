@@ -16,7 +16,7 @@ export const getDifficulty = () => difficulty;
 // Selects a random handicap
 let handicapID;
 const easyDifficulties = [1, 2, 3, 4, 5, 6, 7, 8];
-const normalDifficulties = [9, 10, 11, 12, 13, 14, 21];
+const normalDifficulties = [9, 10, 11, 12, 13, 14, 21, 22];
 const insaneDifficulties = [15, 16, 17, 18, 19, 20];
 export const setRandomHandicapID = () => {
     switch (difficulty) {

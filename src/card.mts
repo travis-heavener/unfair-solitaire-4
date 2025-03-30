@@ -67,6 +67,11 @@ export class Card {
                     `<div class="card no-select ${this.suit}"><img src="res/images/${this.suit}-icon.png"></div>`
                 ))[0] as any;
                 break;
+            case 22: // All 8s
+                this.element = $($.parseHTML(
+                    `<div class="card no-select ${this.suit}"><p>8</p><img src="res/images/${this.suit}-icon.png"></div>`
+                ))[0] as any;
+                break;
             default:
                 this.element = $($.parseHTML(
                     `<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="res/images/${this.suit}-icon.png"></div>`
