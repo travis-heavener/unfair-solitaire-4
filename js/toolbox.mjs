@@ -88,6 +88,12 @@ export const restartGame = () => {
                 card.uncover(true); // Uncover top card
         }
     }
+    // Handle handicaps
+    if (getHandicapID() === 16) { // Remove 1-6 cards from the deck
+        let numToRemove = ~~(Math.random() * 6) + 1;
+        while (numToRemove-- > 0)
+            cards.pop();
+    }
     // Push remaining cards to the deck
     for (let i = cards.length - 1; i >= 28; --i)
         jStock.append(cards[i].getElement());
