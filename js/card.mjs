@@ -46,6 +46,16 @@ export class Card {
                 return res();
             playSound("flip"); // Play sound
             this.isCovered = false;
+            // Handle handicaps
+            if (getHandicapID() === 5 && this.value === "A") {
+                $("#flashbang-div").css("display", "block"); // Show flashbang
+                playSound("flash");
+                lockAnimations(); // Additional lock
+                setTimeout(() => {
+                    $("#flashbang-div").css("display", "");
+                    unlockAnimations();
+                }, 1e3);
+            }
             // Play uncover animation
             if (doAnimation) {
                 lockAnimations(); // Lock out animations

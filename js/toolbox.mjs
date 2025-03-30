@@ -605,7 +605,8 @@ const createAudioElem = (src) => {
 };
 const sounds = {
     "shuffle": [createAudioElem("shuffle1"), createAudioElem("shuffle2")],
-    "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")]
+    "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")],
+    "flash": [createAudioElem("flashbang")]
 };
 // Plays a random sound from the category provided
 let areSoundsMuted = false;

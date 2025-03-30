@@ -394,7 +394,7 @@ html {
     z-index: 9999999;
 }
 
-/**************************** Mock-captcha styling ****************************/
+/**************************** Handicap styling ****************************/
 
 #captcha-content { animation: none; }
 
@@ -410,6 +410,19 @@ html {
 }
 #captcha-content button:last-child:hover { background-color: var(--theme-white); }
 #captcha-content button:last-child:active { background-color: var(--theme-dark-gray); }
+
+#flashbang-div {
+    display: none;
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--theme-white);
+    animation: fadeIn 1s reverse 1;
+    pointer-events: all;
+}
 
 /**************************** Animation keyframes ****************************/
 
