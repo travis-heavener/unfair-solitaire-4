@@ -186,10 +186,10 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
 
         // Check top card
         const index = getCardIndexFromElem(elem.lastChild);
-        
+
         // Force to be same suit
         if (cards[index].getSuit() !== card.getSuit()) return false;
-        
+
         // Force top card value to be 1 less than this card
         const existingValue = cards[index].getValue();
         const newValue = card.getValue();
@@ -209,6 +209,10 @@ export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
         // Force top card value to be 1 more than this card
         const existingValue = cards[index].getValue();
         const newValue = card.getValue();
+
+        // Handle handicaps
+        if (getHandicapID() === 9 && elem.childElementCount + card.getMovingStackChlidCount() > 8)
+            return false; // Prevent stacks of 8 or more
 
         return ((VALUES.indexOf(existingValue) - 1) === VALUES.indexOf(newValue)) || (existingValue === "2" && newValue === "A");
     }
