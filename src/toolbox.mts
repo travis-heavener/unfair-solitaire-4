@@ -178,6 +178,9 @@ const getColorFromSuit = (suit: SuitType): "red" | "black" => (suit === "hearts"
 
 // Returns true if the card can be stacked on the given element, false otherwise
 export const canStackOnElem = (card: Card, elem: HTMLElement): boolean => {
+    // Handle handicap 12 (stacks of 4 max)
+    if (getHandicapID() === 12 && card.getMovingStackChlidCount() > 4) return false;
+
     if ($(elem).hasClass("foundation")) { // Handle ace stack
         // Verify the card doesn't have children
         if (card.getMovingStackChlidCount() > 1) return false;
