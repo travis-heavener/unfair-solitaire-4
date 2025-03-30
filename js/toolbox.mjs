@@ -6,7 +6,7 @@ let animLocks = 0;
 export const lockAnimations = () => void (++animLocks);
 export const unlockAnimations = () => void (animLocks = Math.max(0, animLocks - 1));
 export const isAnimLocked = () => animLocks > 0;
-const wait = (ms) => new Promise(res => setTimeout(res, ms));
+export const wait = (ms) => new Promise(res => setTimeout(res, ms));
 /**************************** START PROTOTYPES ****************************/
 Array.prototype.random = function () {
     return this[Math.floor(Math.random() * this.length)];
@@ -68,6 +68,15 @@ export const restartGame = () => {
         cards.pop().remove();
     // Generate cards
     generateCards(cards);
+    // Check for unusable deals
+    // Verify there isn't a 7 of spades face-up
+    // Indices 0, 2, 5, 9, 14, 20, 27 are all face-up first
+    while (getHandicapID() === 15 && (cards[0].is7ofSpades() || cards[2].is7ofSpades() || cards[5].is7ofSpades() ||
+        cards[9].is7ofSpades() || cards[14].is7ofSpades() || cards[20].is7ofSpades() || cards[27].is7ofSpades())) {
+        while (cards.length)
+            cards.pop().remove();
+        generateCards(cards);
+    }
     // Fill tableau
     const jTableaus = [...$(".tableau")];
     const jStock = $("#stock");
@@ -255,7 +264,8 @@ const uncoverCardFromStock = () => {
         // Update history state
         $(waste).append(elem);
         // Start animation
-        if (getHandicapID() !== 7 || cards[index].getValue() !== "Fish") {
+        if (!(getHandicapID() === 7 && cards[index].getValue() === "Fish") ||
+            !(getHandicapID() === 15 && cards[index].is7ofSpades())) {
             $(elem).css("animation", "cycleCardFromDeck 100ms linear");
             setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
             setTimeout(() => {
@@ -266,8 +276,9 @@ const uncoverCardFromStock = () => {
         }
         else { // Uncover as-is
             $(stock).append(elem);
-            cards[index].uncover(true);
+            cards[index].uncover(true).then(() => res());
             unlockAnimations(); // Unlock animations
+            res();
         }
         // Update state
         updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": stock, "lastPosition": lastPosition });
@@ -655,7 +666,8 @@ const sounds = {
     "shuffle": [createAudioElem("shuffle1"), createAudioElem("shuffle2")],
     "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")],
     "flash": [createAudioElem("flashbang")],
-    "fish": [createAudioElem("fish")]
+    "fish": [createAudioElem("fish")],
+    "womp": [createAudioElem("womp_womp")]
 };
 // Plays a random sound from the category provided
 let areSoundsMuted = false;

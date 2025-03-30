@@ -1,5 +1,5 @@
 import { getHandicapID } from "./player-data.mjs";
-import { animateCardElemMove, canStackOnElem, checkForAutocomplete, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
+import { animateCardElemMove, canStackOnElem, checkForAutocomplete, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, restartGame, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState, wait } from "./toolbox.mjs";
 export class Card {
     suit;
     value;
@@ -106,11 +106,12 @@ export class Card {
     getSuit() { return this.suit; }
     getIsCovered() { return this.isCovered; }
     getMovingStackChlidCount() { return this.movingStackElem?.childElementCount ?? 0; }
+    is7ofSpades() { return this.value === "7" && this.suit === "spades"; }
     // Visual modifiers
     uncover(doAnimation = false) {
-        return new Promise(res => {
+        return new Promise(_res => {
             if (!this.isCovered)
-                return res();
+                return _res();
             playSound("flip"); // Play sound
             this.isCovered = false;
             // Handle handicaps
@@ -127,6 +128,65 @@ export class Card {
                     }
                     break;
             }
+            // Wrap resolve function
+            const res = () => {
+                // Handle handicaps
+                switch (getHandicapID()) {
+                    case 7:
+                        if (this.value === "Fish") { // Fish card
+                            const originalParent = this.element.parentElement;
+                            playSound("fish"); // Play sound
+                            this.removeEventListeners(); // Remove event listeners
+                            // Animate
+                            lockAnimations();
+                            wait(150)
+                                .then(() => {
+                                animateCardElemMove(this.element, $("#fish-spot")[0], { "duration": 10_000 })
+                                    .then(() => {
+                                    unlockAnimations();
+                                    _res();
+                                });
+                                // Uncover card beneath this
+                                if ($(originalParent).hasClass("tableau"))
+                                    uncoverTopOfColumn(parseInt(originalParent.id.replace("tableau-", "")), true);
+                            });
+                        }
+                        else {
+                            _res(); // Otherwise, resolve promise
+                        }
+                        break;
+                    case 15:
+                        if (this.is7ofSpades()) {
+                            // 7 of spades restarts game
+                            lockAnimations(); // Lock animations
+                            playSound("womp");
+                            // Start animation
+                            wait(150).then(() => {
+                                const { top, left } = $(this.element).offset();
+                                $(this.element).css({
+                                    "opacity": "0",
+                                    "position": "absolute",
+                                    "--start-top": top + "px",
+                                    "--start-left": left + "px",
+                                    "animation": "restart7OfSpades 3750ms ease 1"
+                                });
+                                $("body").append(this.element);
+                                setTimeout(() => {
+                                    $(this.element).css("animation", "");
+                                    while (isAnimLocked())
+                                        unlockAnimations(); // Remove animation locks
+                                    restartGame();
+                                    _res();
+                                }, 4000);
+                            });
+                        }
+                        else {
+                            _res(); // Otherwise, resolve promise
+                        }
+                        break;
+                    default: return _res();
+                }
+            };
             // Play uncover animation
             if (doAnimation) {
                 lockAnimations(); // Lock out animations
@@ -135,24 +195,6 @@ export class Card {
                 setTimeout(() => {
                     $(this.element).css("animation", "");
                     unlockAnimations(); // Unlock animations
-                    // Handle handicaps
-                    if (getHandicapID() === 7 && this.value === "Fish") { // Fish card
-                        const originalParent = this.element.parentElement;
-                        playSound("fish"); // Play sound
-                        this.removeEventListeners(); // Remove event listeners
-                        // Animate
-                        lockAnimations();
-                        animateCardElemMove(this.element, $("#fish-spot")[0], { "duration": 10_000 })
-                            .then(() => {
-                            unlockAnimations();
-                            res();
-                        });
-                        // Uncover card beneath this
-                        if ($(originalParent).hasClass("tableau"))
-                            uncoverTopOfColumn(parseInt(originalParent.id.replace("tableau-", "")), true);
-                        return;
-                    }
-                    // Base case
                     res();
                 }, 220);
             }

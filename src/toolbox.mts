@@ -8,7 +8,7 @@ let animLocks = 0;
 export const lockAnimations = () => void(++animLocks);
 export const unlockAnimations = () => void(animLocks = Math.max(0, animLocks-1));
 export const isAnimLocked = () => animLocks > 0;
-const wait = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
+export const wait = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 
 /**************************** START PROTOTYPES ****************************/
 
@@ -101,6 +101,15 @@ export const restartGame = () => {
 
     // Generate cards
     generateCards(cards);
+
+    // Check for unusable deals
+    // Verify there isn't a 7 of spades face-up
+    // Indices 0, 2, 5, 9, 14, 20, 27 are all face-up first
+    while (getHandicapID() === 15 && (cards[0].is7ofSpades() || cards[2].is7ofSpades() || cards[5].is7ofSpades() ||
+        cards[9].is7ofSpades() || cards[14].is7ofSpades() || cards[20].is7ofSpades() || cards[27].is7ofSpades())) {
+        while (cards.length) cards.pop().remove();
+        generateCards(cards);
+    }
 
     // Fill tableau
     const jTableaus = [...$(".tableau")];
@@ -319,7 +328,8 @@ const uncoverCardFromStock = (): Promise<void> => {
         $(waste).append(elem);
 
         // Start animation
-        if (getHandicapID() !== 7 || cards[index].getValue() !== "Fish") {
+        if (!(getHandicapID() === 7 && cards[index].getValue() === "Fish") ||
+            !(getHandicapID() === 15 && cards[index].is7ofSpades())) {
             $(elem).css("animation", "cycleCardFromDeck 100ms linear");
             setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
             setTimeout(() => { // Remove animation after complete to prevent re-executing
@@ -329,8 +339,9 @@ const uncoverCardFromStock = (): Promise<void> => {
             }, 100);
         } else { // Uncover as-is
             $(stock).append(elem);
-            cards[index].uncover(true);
+            cards[index].uncover(true).then(() => res());
             unlockAnimations(); // Unlock animations
+            res();
         }
 
         // Update state
@@ -773,12 +784,14 @@ const sounds = {
     "shuffle": [ createAudioElem("shuffle1"), createAudioElem("shuffle2") ],
     "flip": [ createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4") ],
     "flash": [ createAudioElem("flashbang") ],
-    "fish": [ createAudioElem("fish") ]
+    "fish": [ createAudioElem("fish") ],
+    "womp": [ createAudioElem("womp_womp") ]
 };
 
 // Plays a random sound from the category provided
 let areSoundsMuted = false;
-export const playSound = (name: "shuffle" | "flip" | "flash" | "fish", durationMS: number=null) => {
+type SoundType = "shuffle" | "flip" | "flash" | "fish" | "womp";
+export const playSound = (name: SoundType, durationMS: number=null) => {
     if (areSoundsMuted) return;
 
     // Control speed

@@ -316,13 +316,13 @@ html {
 
 .card:not(.covered) { cursor: pointer; }
 
-.card.fish {
+.card.fish:not(.covered) {
     cursor: default !important;
     background-image: none !important;
 }
 .card.fish > img { transform: rotate(90deg); }
 
-.card.fish::before {
+.card.fish:not(.covered)::before {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -566,4 +566,21 @@ html {
 @keyframes textScanline {
     0% { background-position: 100% 0; }
     100% { background-position: -100% 0; }
+}
+
+@keyframes restart7OfSpades {
+    0% {
+        opacity: 1;
+        top: var(--start-top);
+        left: var(--start-left);
+        transform: scale(1) rotate(0);
+        z-index: 999999;
+    }
+    100% {
+        opacity: 1;
+        top: calc(50vh - var(--card-height) / 2);
+        left: calc(50vw - var(--card-width) / 2);
+        transform: scale(2) rotate(360deg);
+        z-index: 999999;
+    }
 }
