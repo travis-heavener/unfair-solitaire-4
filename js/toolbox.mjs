@@ -248,7 +248,7 @@ const uncoverCardFromStock = () => {
         // Update history state
         $(waste).append(elem);
         // Start animation
-        if (getHandicapID() === 7 && cards[index].getValue() !== "Fish") {
+        if (getHandicapID() !== 7 || cards[index].getValue() !== "Fish") {
             $(elem).css("animation", "cycleCardFromDeck 100ms linear");
             setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
             setTimeout(() => {
@@ -258,6 +258,7 @@ const uncoverCardFromStock = () => {
             }, 100);
         }
         else { // Uncover as-is
+            $(stock).append(elem);
             cards[index].uncover(true);
         }
         // Update state
