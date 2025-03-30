@@ -383,7 +383,7 @@ const triggerWinSequence = () => {
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
     // Animate each card
-    const cardLocations = [...$(".foundation")];
+    const cardLocations = [...$(".foundation, #fish-spot")];
     // Get children in order going across
     const children = [];
     let cardChildrenBuf = cardLocations.map(c => [...c.children]); // Array of all children to remove

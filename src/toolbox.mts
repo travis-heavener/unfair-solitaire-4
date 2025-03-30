@@ -464,7 +464,7 @@ const triggerWinSequence = () => {
         cards[i].removeEventListeners();
 
     // Animate each card
-    const cardLocations: HTMLElement[] = [...$(".foundation")];
+    const cardLocations: HTMLElement[] = [...$(".foundation, #fish-spot")];
 
     // Get children in order going across
     const children: HTMLElement[] = [];
