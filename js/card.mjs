@@ -1,3 +1,4 @@
+import { getHandicapID } from "./player-data.mjs";
 import { animateCardElemMove, canStackOnElem, checkForAutocomplete, checkForWinCondition, getCardIndexFromElem, getOverlappingElements, isAnimLocked, lockAnimations, playSound, saveHistoryState, uncoverTopOfColumn, unlockAnimations, updateHistoryState } from "./toolbox.mjs";
 export class Card {
     suit;
@@ -15,7 +16,13 @@ export class Card {
         this.suit = suit;
         this.value = value;
         // Create element
-        this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><p>${this.value}</p><img src="/res/images/${this.suit}-icon.png"></div>`))[0];
+        let visualValue = this.value;
+        switch (getHandicapID()) {
+            case 1: // Three Stooges cards
+                visualValue = (this.value === "K") ? "M" : (this.value === "Q") ? "L" : (this.value === "J") ? "C" : this.value;
+                break;
+        }
+        this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="/res/images/${this.suit}-icon.png"></div>`))[0];
         // Start covered
         this.cover();
         // Bind events
