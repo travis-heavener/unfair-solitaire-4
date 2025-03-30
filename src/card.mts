@@ -97,7 +97,8 @@ export class Card {
     getIsCovered(): boolean { return this.isCovered; }
     getMovingStackChlidCount(): number { return this.movingStackElem?.childElementCount ?? 0; }
     is7ofSpades(): boolean { return this.value === "7" && this.suit === "spades"; }
-    
+    isInTableau(): boolean { return $(this.element.parentElement).hasClass("tableau"); }
+
     // Setters
     setValue(value: ValueType) {
         this.value = value;

@@ -615,7 +615,7 @@ const undoLastMove = () => {
 let _clockInterval = null;
 let lastClockUpdateTS = null, lastClockPauseTS = null;
 let elapsedSec = 0;
-let lastHandicap2TS = null; // The timestamp of the last update for handicap #2
+let lastHandicapTS = null; // The timestamp of the last update for handicap #2
 const startGameClock = () => {
     // Stop any running intervals
     if (_clockInterval !== null)
@@ -623,7 +623,7 @@ const startGameClock = () => {
     const jTimeDisplay = $("#time-display");
     const update = () => {
         if (elapsedSec === 0)
-            lastHandicap2TS = Date.now() - 1e3; // Set initial handicap ts
+            lastHandicapTS = Date.now() - 1e3; // Set initial handicap ts
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
         lastClockUpdateTS = Date.now(); // Update last updated ts
@@ -633,8 +633,8 @@ const startGameClock = () => {
         // Handle handicaps
         switch (getHandicapID()) {
             case 2: // Undo last two moves every 20 seconds
-                if (Date.now() - lastHandicap2TS > 20_000 && !isAnimLocked()) {
-                    lastHandicap2TS = Date.now();
+                if (Date.now() - lastHandicapTS > 20_000 && !isAnimLocked()) {
+                    lastHandicapTS = Date.now();
                     undoLastMove().then(() => {
                         lockAnimations(); // Add lock to prevent moving while waiting between undos
                         wait(150).then(() => {
@@ -644,12 +644,37 @@ const startGameClock = () => {
                     });
                 }
                 break;
+            case 18: // Swap two uncovered cards every 20 seconds
+                if (Date.now() - lastHandicapTS > 20_000 && !isAnimLocked()) {
+                    lastHandicapTS = Date.now();
+                    // Get indices
+                    let indexA, indexB;
+                    do {
+                        indexA = ~~(Math.random() * cards.length);
+                    } while (cards[indexA].getIsCovered() || !cards[indexA].isInTableau());
+                    do {
+                        indexB = ~~(Math.random() * cards.length);
+                    } while (indexA === indexB || cards[indexB].getIsCovered() || !cards[indexB].isInTableau());
+                    // Get previous element
+                    const [cardA, cardB] = [cards[indexA], cards[indexB]];
+                    const elemA = cardA.getElement(), elemB = cardB.getElement();
+                    const parentA = elemA.parentElement, parentB = elemB.parentElement;
+                    // Swap elements
+                    const placeholderA = document.createElement("DIV");
+                    const placeholderB = document.createElement("DIV");
+                    parentA.replaceChild(placeholderA, elemA);
+                    parentB.replaceChild(placeholderB, elemB);
+                    parentA.replaceChild(elemB, placeholderA);
+                    parentB.replaceChild(elemA, placeholderB);
+                    playSound("shuffle"); // Play sound
+                }
+                break;
         }
     };
     // Queue next update if paused
     if (lastClockPauseTS !== null) {
         // Fix last handicap #2 timestamp due to pause
-        lastHandicap2TS += Date.now() - lastClockPauseTS;
+        lastHandicapTS += Date.now() - lastClockPauseTS;
         // Properly delay the clock interval restart
         const delay = 1e3 - (lastClockPauseTS - lastClockUpdateTS);
         lastClockPauseTS = null;
