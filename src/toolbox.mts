@@ -167,7 +167,6 @@ export const uncoverTopOfColumn = (colNum: number, ignoreHistoryState: boolean=f
         }
         res();
     });
-    
 };
 
 // Returns either red or black based on the SuitType
