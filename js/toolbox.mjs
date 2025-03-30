@@ -41,6 +41,7 @@ const generateCards = (cards) => {
 // Invoke to start the game
 export const startGame = (difficulty) => {
     setDifficulty(difficulty); // Set difficulty
+    $("#resume-btn").on("click", () => togglePauseGame()); // Resume on click
     restartGame(); // Pass through to restart game
 };
 // Invoke to reset the game
@@ -144,11 +145,13 @@ const togglePauseGame = () => {
         pauseGameClock(); // Stop clock
         unbindEvents(); // Unbind events
         cards.forEach(card => card.removeEventListeners()); // Remove card events
+        $("#pause-menu").css("display", "flex"); // Show pause menu
     }
     else {
         startGameClock(); // Start clock
         bindEvents(); // Unbind events
         cards.forEach(card => card.bindEvents()); // Remove card events
+        $("#pause-menu").css("display", ""); // Hide pause menu
     }
     isPaused = !isPaused;
 };
@@ -738,7 +741,7 @@ const startGameClock = () => {
         }
     };
     // Queue next update if paused
-    if (lastClockPauseTS !== null) {
+    if (lastClockPauseTS !== null && lastClockUpdateTS !== null) {
         // Fix last handicap #2 timestamp due to pause
         lastHandicapTS += Date.now() - lastClockPauseTS;
         // Properly delay the clock interval restart
@@ -761,6 +764,8 @@ const restartGameClock = () => {
 };
 // Used to pause the clock
 const pauseGameClock = () => {
+    if (_clockInterval === null)
+        return;
     clearInterval(_clockInterval);
     lastClockPauseTS = Date.now();
     _clockInterval = null;
