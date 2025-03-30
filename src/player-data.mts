@@ -25,7 +25,7 @@ let handicapID: number;
 export const setRandomHandicapID = (): number => {
     switch (difficulty) {
         case "Classic": handicapID = -1; break;
-        case "Easy":    handicapID = 7;break;//Math.floor(Math.random() * 8) + 1; break;
+        case "Easy":    handicapID = Math.floor(Math.random() * 8) + 1; break;
         case "Normal":  handicapID = Math.floor(Math.random() * 6) + 9; break;
         case "Insane":  handicapID = Math.floor(Math.random() * 6) + 15; break;
     }
