@@ -1,5 +1,5 @@
 import { Card, SuitType, ValueType } from "./card.mjs";
-import { addScore, DifficultyType, getHandicapID, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore, setRandomHandicapID } from "./player-data.mjs";
+import { addScore, DifficultyType, getDifficulty, getHandicapID, getHighScore, getScore, incrementMoves, resetMoves, resetScore, setDifficulty, setHighScore, setRandomHandicapID } from "./player-data.mjs";
 
 const MAX_HISTORY_LENGTH = 50; // The maximum number of history elements
 
@@ -589,6 +589,8 @@ const triggerWinSequence = () => {
 
 // Used to check if autocomplete is available
 export const checkForAutocomplete = () => {
+    if (getDifficulty() === "Normal" || getDifficulty() === "Insane") return;
+
     // Check if each card is uncovered
     const columns = $(".tableau");
     for (let i = 0; i < columns.length; ++i) {
