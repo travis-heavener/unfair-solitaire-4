@@ -21,8 +21,8 @@ export const setRandomHandicapID = () => {
             handicapID = -1;
             break;
         case "Easy":
-            handicapID = Math.floor(Math.random() * 8) + 1;
-            break;
+            handicapID = 7;
+            break; //Math.floor(Math.random() * 8) + 1; break;
         case "Normal":
             handicapID = Math.floor(Math.random() * 6) + 9;
             break;

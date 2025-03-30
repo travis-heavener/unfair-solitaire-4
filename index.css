@@ -84,9 +84,7 @@ html {
     background-color: #0002;
 }
 
-.foundation,
-#waste,
-#stock {
+#upper-content > * {
     --border-width: 0.025em;
 
     display: flex;
@@ -114,10 +112,7 @@ html {
 .foundation:nth-child(1) { background-image: url("/res/images/hearts-icon-dark.png"); }
 .foundation:nth-child(2) { background-image: url("/res/images/diamonds-icon-dark.png"); }
 .foundation:nth-child(3) { background-image: url("/res/images/clubs-icon.png"); }
-.foundation:nth-child(4) {
-    background-image: url("/res/images/spades-icon.png");
-    margin-right: calc(1.75* var(--card-width));
-}
+.foundation:nth-child(4) { background-image: url("/res/images/spades-icon.png"); }
 
 #stock { background-image: url("/res/images/deck-cycle-icon.png"); background-size: 50%; }
 
@@ -422,6 +417,11 @@ html {
     background-color: var(--theme-white);
     animation: fadeIn 1s reverse 1;
     pointer-events: all;
+}
+
+#fish-spot {
+    background-color: transparent;
+    border: none;
 }
 
 /**************************** Animation keyframes ****************************/

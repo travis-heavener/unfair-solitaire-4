@@ -87,14 +87,18 @@ export class Card {
             playSound("flip"); // Play sound
             this.isCovered = false;
             // Handle handicaps
-            if (getHandicapID() === 5 && this.value === "A") {
-                $("#flashbang-div").css("display", "block"); // Show flashbang
-                playSound("flash");
-                lockAnimations(); // Additional lock
-                setTimeout(() => {
-                    $("#flashbang-div").css("display", "");
-                    unlockAnimations();
-                }, 1e3);
+            switch (getHandicapID()) {
+                case 5: // Ace flashbang
+                    if (this.value === "A") {
+                        $("#flashbang-div").css("display", "block"); // Show flashbang
+                        playSound("flash");
+                        lockAnimations(); // Additional lock
+                        setTimeout(() => {
+                            $("#flashbang-div").css("display", "");
+                            unlockAnimations();
+                        }, 1e3);
+                    }
+                    break;
             }
             // Play uncover animation
             if (doAnimation) {
@@ -104,6 +108,25 @@ export class Card {
                 setTimeout(() => {
                     $(this.element).css("animation", "");
                     unlockAnimations(); // Unlock animations
+                    // Handle handicaps
+                    if (getHandicapID() === 7 && this.value === "Fish") { // Fish card
+                        const originalParent = this.element.parentElement;
+                        playSound("fish"); // Play sound
+                        $(this.element).css("cursor", "default");
+                        this.removeEventListeners(); // Remove event listeners
+                        // Animate
+                        lockAnimations();
+                        animateCardElemMove(this.element, $("#fish-spot")[0], { "duration": 10_000 })
+                            .then(() => {
+                            unlockAnimations();
+                            res();
+                        });
+                        // Uncover card beneath this
+                        if ($(originalParent).hasClass("tableau"))
+                            uncoverTopOfColumn(parseInt(originalParent.id.replace("tableau-", "")), true);
+                        return;
+                    }
+                    // Base case
                     res();
                 }, 220);
             }
@@ -175,12 +198,12 @@ export class Card {
         const children = [...this.movingStackElem.children];
         if (targetElement === null || targetElement === this.originalParent || !canStackOnElem(this, targetElement)) {
             for (let i = 0; i < children.length; ++i) // Return to starting position
-                animateCardElemMove(children[i], this.originalParent, null, false);
+                animateCardElemMove(children[i], this.originalParent, { "originalParent": null, "countScore": false });
         }
         else { // Can place
             for (let i = 0; i < children.length; ++i) {
                 // Animate from old to new
-                animateCardElemMove(children[i], targetElement, this.originalParent);
+                animateCardElemMove(children[i], targetElement, { "originalParent": this.originalParent });
                 // Add state
                 updateHistoryState({
                     "originalParent": this.originalParent, "hasBeenCovered": false, "hasBeenUncovered": false,

@@ -29,6 +29,12 @@ const generateCards = (cards) => {
     for (let s = 0; s < 4; ++s)
         for (let v = 0; v < 13; ++v)
             cards.push(new Card(SUITS[s], VALUES[v]));
+    // Handle handicaps
+    switch (getHandicapID()) {
+        case 7:
+            cards.push(new Card("spades", "Fish"));
+            break;
+    }
     // Shuffle the deck
     cards.shuffle().forEach((card, i) => card.setIndex(i));
 };
@@ -39,6 +45,8 @@ export const startGame = (difficulty) => {
 };
 // Invoke to reset the game
 export const restartGame = () => {
+    if (isAnimLocked())
+        return;
     unbindEvents();
     bindEvents();
     setRandomHandicapID(); // Select handicap
@@ -67,7 +75,7 @@ export const restartGame = () => {
             const card = cards[i++];
             jTableaus[c].append(card.getElement());
             if (r === c)
-                card.uncover(); // Uncover top card
+                card.uncover(true); // Uncover top card
         }
     }
     // Push remaining cards to the deck
@@ -97,7 +105,7 @@ const togglePauseGame = () => {
 // Returns the numeric card index from an element's data-index attribute
 export const getCardIndexFromElem = (elem) => parseInt(elem.getAttribute("data-index"));
 // Used to uncover the bottom card in the tableau, if it exists
-export const uncoverTopOfColumn = (colNum) => {
+export const uncoverTopOfColumn = (colNum, ignoreHistoryState = false) => {
     return new Promise(async (res) => {
         // Get the index of the top card
         const column = $(".tableau")[colNum - 1];
@@ -107,7 +115,8 @@ export const uncoverTopOfColumn = (colNum) => {
             playSound("flip"); // Play sound regardless
             // Update state & points
             if (wasCovered) {
-                updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
+                if (!ignoreHistoryState)
+                    updateHistoryState({ "cardIndex": index, "hasBeenCovered": false, "hasBeenUncovered": true, "originalParent": null, "lastPosition": null });
                 addScore(5); // Uncovered card in tableau
             }
             await cards[index].uncover(true); // Handles locking the animation on its own
@@ -239,13 +248,18 @@ const uncoverCardFromStock = () => {
         // Update history state
         $(waste).append(elem);
         // Start animation
-        $(elem).css("animation", "cycleCardFromDeck 100ms linear");
-        setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
-        setTimeout(() => {
-            $(elem).css("animation", "");
-            unlockAnimations(); // Unlock animations
-            res(); // Resolve promise
-        }, 100);
+        if (getHandicapID() === 7 && cards[index].getValue() !== "Fish") {
+            $(elem).css("animation", "cycleCardFromDeck 100ms linear");
+            setTimeout(() => cards[index].uncover(), 50); // Uncover halfway through
+            setTimeout(() => {
+                $(elem).css("animation", "");
+                unlockAnimations(); // Unlock animations
+                res(); // Resolve promise
+            }, 100);
+        }
+        else { // Uncover as-is
+            cards[index].uncover(true);
+        }
         // Update state
         updateHistoryState({ "cardIndex": index, "hasBeenUncovered": true, "hasBeenCovered": false, "originalParent": stock, "lastPosition": lastPosition });
     });
@@ -278,7 +292,11 @@ export const getOverlappingElements = (card) => {
     return bestDropLocation;
 };
 // Used to animate the moving of a card element to a new parent
-export const animateCardElemMove = (elem, newParent, originalParent = null, countScore = true) => {
+export const animateCardElemMove = (elem, newParent, opts) => {
+    opts = opts ?? {};
+    const duration = opts.duration ?? 200;
+    let originalParent = opts.originalParent ?? null;
+    const countScore = opts.countScore ?? true;
     return new Promise(res => {
         if (!originalParent)
             originalParent = elem.parentElement;
@@ -291,14 +309,14 @@ export const animateCardElemMove = (elem, newParent, originalParent = null, coun
         $(elem).css({
             "--start-top": (startOffset.top - endOffset.top) + "px",
             "--start-left": (startOffset.left - endOffset.left) + "px",
-            "animation": "cardMoveBackToStart 200ms ease"
+            "animation": `cardMoveBackToStart ${duration}ms ease`
         });
         // Remove animation once done
         setTimeout(() => {
             $(elem).css({ "--start-top": "", "--start-left": "", "animation": "" });
             unlockAnimations(); // Unlock animations
             res();
-        }, 200);
+        }, duration);
         // Add score
         incrementMoves();
         if (!countScore)
@@ -487,7 +505,12 @@ const beginAutocomplete = async () => {
 const moveHistory = []; // The last few moves' data
 let currentHistoryState = []; // The current history data
 // Adds an update to the current state
-export const updateHistoryState = (data) => currentHistoryState.push(data);
+export const updateHistoryState = (data) => {
+    // Ignore pushing fish
+    if (cards[data.cardIndex].getValue() === "Fish")
+        return;
+    currentHistoryState.push(data);
+};
 // Adds the current state to the user's move history
 export const saveHistoryState = () => {
     if (currentHistoryState.length) {
@@ -523,7 +546,7 @@ const undoLastMove = () => {
                 card.cover();
             // Undo move
             if (stateData.originalParent !== null)
-                animateCardElemMove(card.getElement(), stateData.originalParent, null, false)
+                animateCardElemMove(card.getElement(), stateData.originalParent, { "originalParent": null, "countScore": false })
                     .then(() => (++animsComplete === maxAnims) ? resolve() : null);
         }
         playSound("flip"); // Play sound
@@ -606,7 +629,8 @@ const createAudioElem = (src) => {
 const sounds = {
     "shuffle": [createAudioElem("shuffle1"), createAudioElem("shuffle2")],
     "flip": [createAudioElem("flip1"), createAudioElem("flip2"), createAudioElem("flip3"), createAudioElem("flip4")],
-    "flash": [createAudioElem("flashbang")]
+    "flash": [createAudioElem("flashbang")],
+    "fish": [createAudioElem("fish")]
 };
 // Plays a random sound from the category provided
 let areSoundsMuted = false;
