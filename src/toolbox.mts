@@ -113,7 +113,7 @@ export const restartGame = () => {
     }
 
     // Push remaining cards to the deck
-    for (let i = 51; i >= 28; --i)
+    for (let i = cards.length-1; i >= 28; --i)
         jStock.append(cards[i].getElement());
 
     // Start clock
