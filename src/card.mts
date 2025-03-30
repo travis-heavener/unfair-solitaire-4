@@ -20,6 +20,8 @@ export class Card {
     private movingCardOriginalPositions: Point[] = null; // The previous absolute page positions of each card (for history state)
     private clickOffset: Point = null; // The extra offset of a click's position relative to the top-left of the element itself
 
+    private handicap14TimeoutID: number = null; // Holds the timeout for dropping held cards
+
     constructor(suit: SuitType, value: ValueType) {
         this.suit = suit;
         this.value = value;
@@ -218,6 +220,16 @@ export class Card {
 
         // Lock animations
         lockAnimations();
+
+        // Handle handicaps
+        if (getHandicapID() === 14) { // Can't hold cards too hold
+            if (this.handicap14TimeoutID !== null) clearTimeout(this.handicap14TimeoutID);
+
+            this.handicap14TimeoutID = setTimeout(() => {
+                if (this.movingStackElem === null) return;
+                this.handleMouseUp(); // Otherwise, return stack
+            }, 250);
+        }
     }
 
     // Handles mouse moves on card stacks
@@ -263,5 +275,9 @@ export class Card {
         saveHistoryState(); // Save the current history state
         checkForAutocomplete(); // Check for autocomplete
         checkForWinCondition(); // Check for win condition
+
+        // Handle handicap timeout
+        if (this.handicap14TimeoutID !== null)
+            clearTimeout(this.handicap14TimeoutID);
     }
 }
