@@ -311,7 +311,7 @@ html {
 
 /**************************** Win & welcome containers ****************************/
 
-#win-container, #welcome-div {
+.overlay {
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -327,20 +327,20 @@ html {
     animation: fadeIn 500ms linear;
 }
 
-#win-container, #welcome-div > h1 {
+.overlay h1 {
     color: var(--theme-white);
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
     font: 700 calc(0.75 * var(--card-width))/1.5 "Signika", sans-serif;
 }
 
-#win-container, #welcome-div p {
+.overlay p {
     margin-bottom: 0.3em;
     color: var(--theme-gray);
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
     font: 600 calc(0.27 * var(--card-width)) / 1.5 "Signika", sans-serif;
 }
 
-#win-container, #welcome-div > button {
+.overlay button {
     margin-bottom: 2em;
     padding: 0.33em 0.5em;
     min-width: 4em;
@@ -355,8 +355,8 @@ html {
     transition: 0.1s background-color;
 }
 
-#win-container, #welcome-div > button:hover { background-color: var(--theme-red-lighter); }
-#win-container, #welcome-div > button:active { background-color: var(--theme-red-darker); }
+.overlay button:hover { background-color: var(--theme-red-lighter); }
+.overlay button:active { background-color: var(--theme-red-darker); }
 
 #welcome-div {
     display: flex;
@@ -393,6 +393,23 @@ html {
     font: 600 calc(0.33* var(--card-width)) "Signika", sans-serif;
     z-index: 9999999;
 }
+
+/**************************** Mock-captcha styling ****************************/
+
+#captcha-content { animation: none; }
+
+#captcha-content button:first-child:hover {
+    opacity: 0;
+    animation: fadeIn 150ms reverse 1;
+    cursor: default;
+}
+
+#captcha-content button:last-child {
+    background-color: var(--theme-gray);
+    color: var(--theme-black);
+}
+#captcha-content button:last-child:hover { background-color: var(--theme-white); }
+#captcha-content button:last-child:active { background-color: var(--theme-dark-gray); }
 
 /**************************** Animation keyframes ****************************/
 

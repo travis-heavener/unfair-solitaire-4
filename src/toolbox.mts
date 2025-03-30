@@ -230,7 +230,19 @@ export const cycleDeckToNext = () => {
 // Used to reset the stock from the waste pile
 const moveWasteToStock = (): Promise<void> => {
     const stock = $("#stock")[0], waste = $("#waste")[0];
-    return new Promise(res => {
+    return new Promise(async res => {
+        // Handle handicap #4
+        if (getHandicapID() === 4) {
+            // Wait for user confirmation
+            await new Promise<void>(captchaResolve => {
+                $("#captcha-content").css("display", "flex"); // Show confirmation
+                $("#captcha-submit-btn").one("click", () => {
+                    $("#captcha-content").css("display", ""); // Hide confirmation
+                    captchaResolve();
+                });
+            });
+        }
+
         addScore(-50); // Update score for cycling deck
 
         [...waste.children].forEach(elem => {

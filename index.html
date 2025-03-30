@@ -27,6 +27,7 @@
                 <div id="waste"></div>
                 <div id="stock"></div>
             </div>
+
             <div id="board-content">
                 <div id="tableau-1" class="tableau"></div>
                 <div id="tableau-2" class="tableau"></div>
@@ -36,6 +37,7 @@
                 <div id="tableau-6" class="tableau"></div>
                 <div id="tableau-7" class="tableau"></div>
             </div>
+
             <div id="controls-content">
                 <button id="undo-btn" class="no-select">UNDO</button>
                 <p class="no-select">Score: <span id="score-display">0</span></p>
@@ -45,15 +47,18 @@
                 <button id="reset-btn" class="no-select">RESET</button>
                 <p id="reset-tooltip" class="no-select">Hold to reset!</p>
             </div>
+
             <button id="autocomplete-btn" class="no-select">AUTOCOMPLETE</button>
             <h2 id="handicap-id" class="no-select"></h2>
         </div>
-        <div id="win-container">
+
+        <div id="win-container" class="overlay">
             <h1>You Win</h1>
             <p>High Score: <span id="high-score-display">0</span></p>
             <button id="play-again-btn">Play Again</button>
         </div>
-        <div id="welcome-div">
+
+        <div id="welcome-div" class="overlay">
             <h1>Unfair Solitaire</h1>
             <div id="difficulty-select-wrapper">
                 <p>Difficulty:</p>
@@ -65,6 +70,14 @@
                 </select>
             </div>
             <button id="begin-btn">Play</button>
+        </div>
+
+        <div id="captcha-content" class="overlay">
+            <h1>Are you a robot?</h1>
+            <div>
+                <button>Yes</button>
+                <button id="captcha-submit-btn">No</button>
+            </div>
         </div>
     </body>
 </html>
