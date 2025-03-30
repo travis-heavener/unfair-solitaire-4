@@ -61,6 +61,19 @@ export class Card {
                         break;
                 }
                 break;
+            case 8: // Face cards as numbers
+                switch (this.value) {
+                    case "K":
+                        visualValue = "13";
+                        break;
+                    case "Q":
+                        visualValue = "12";
+                        break;
+                    case "J":
+                        visualValue = "11";
+                        break;
+                }
+                break;
         }
         this.element = $($.parseHTML(`<div class="card no-select ${this.suit}"><p>${visualValue}</p><img src="/res/images/${this.suit}-icon.png"></div>`))[0];
         // Start covered
