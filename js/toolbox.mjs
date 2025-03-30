@@ -488,6 +488,9 @@ const undoLastMove = () => {
         if (isAnimLocked() || moveHistory.length === 0 || isGamePaused())
             return resolve();
         const lastState = moveHistory.pop();
+        // Count # of animations needed
+        let maxAnims = 0;
+        lastState.forEach(stateData => stateData.originalParent !== null ? ++maxAnims : null);
         let animsComplete = 0;
         for (const stateData of lastState) {
             const card = cards[stateData.cardIndex];
@@ -499,7 +502,7 @@ const undoLastMove = () => {
             // Undo move
             if (stateData.originalParent !== null)
                 animateCardElemMove(card.getElement(), stateData.originalParent, null, false)
-                    .then(() => (++animsComplete === lastState.length) ? resolve() : null);
+                    .then(() => (++animsComplete === maxAnims) ? resolve() : null);
         }
         playSound("flip"); // Play sound
         incrementMoves(); // Count move
@@ -521,7 +524,7 @@ const startGameClock = () => {
     const jTimeDisplay = $("#time-display");
     const update = () => {
         if (elapsedSec === 0)
-            lastHandicap2TS = Date.now(); // Set initial handicap ts
+            lastHandicap2TS = Date.now() - 1e3; // Set initial handicap ts
         ++elapsedSec;
         jTimeDisplay.text(`${Math.floor(elapsedSec / 60)}:${(elapsedSec % 60 + "").padStart(2, "0")}`);
         lastClockUpdateTS = Date.now(); // Update last updated ts
@@ -546,6 +549,9 @@ const startGameClock = () => {
     };
     // Queue next update if paused
     if (lastClockPauseTS !== null) {
+        // Fix last handicap #2 timestamp due to pause
+        lastHandicap2TS += Date.now() - lastClockPauseTS;
+        // Properly delay the clock interval restart
         const delay = 1e3 - (lastClockPauseTS - lastClockUpdateTS);
         lastClockPauseTS = null;
         _clockInterval = setTimeout(() => {
