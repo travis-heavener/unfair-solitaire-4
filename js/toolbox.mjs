@@ -57,6 +57,7 @@ export const restartGame = () => {
     // Reset control elements
     $("#score-display, #moves-display").text(0);
     $("#time-display").text("0:00");
+    $("#handicap-vignette").css({ "display": "", "--coverage": "0" });
     // Reset state & stats
     restartGameClock();
     clearMoveHistory();
@@ -515,6 +516,14 @@ export const updateHistoryState = (data) => {
     if (cards[data.cardIndex].getValue() === "Fish")
         return;
     currentHistoryState.push(data);
+    // Handle handicaps
+    if (getHandicapID() === 10) { // Close border
+        const numCardsInDeck = $("#stock > *, #waste > *").length;
+        $("#handicap-vignette").css({
+            "display": "block",
+            "--coverage": 1 - (numCardsInDeck / 24)
+        });
+    }
 };
 // Adds the current state to the user's move history
 export const saveHistoryState = () => {
@@ -558,6 +567,14 @@ const undoLastMove = () => {
         incrementMoves(); // Count move
         addScore(-15); // -15 penalty for undoing
         checkForAutocomplete(); // Remove autocomplete icon if needed
+        // Handle handicaps
+        if (getHandicapID() === 10) { // Close border
+            const numCardsInDeck = $("#stock > *, #waste > *").length;
+            $("#handicap-vignette").css({
+                "display": "block",
+                "--coverage": 1 - (numCardsInDeck / 24)
+            });
+        }
     });
 };
 /**************************** END MOVE HISTORY ****************************/

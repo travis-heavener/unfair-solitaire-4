@@ -441,6 +441,35 @@ html {
     border: none;
 }
 
+#handicap-vignette {
+    --coverage: 0;
+
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    pointer-events: none;
+    z-index: 9999999;
+}
+
+#handicap-vignette::before {
+    --radius: calc((0.9 - var(--coverage) / 2) * 80%);
+
+    position: absolute;
+    top: calc(50% - var(--radius));
+    left: calc(50% - var(--radius));
+    right: calc(50% - var(--radius));
+    bottom: calc(50% - var(--radius));
+
+    border-radius: 100%;
+    box-shadow: 0 100vh 0 100vw var(--theme-black);
+    content: "";
+    transition: 0.1s top, 0.1s left, 0.1s right, 0.1s bottom;
+}
+
 /**************************** Animation keyframes ****************************/
 
 /* Called twice--once before flipping card, and once after (reversed) */
