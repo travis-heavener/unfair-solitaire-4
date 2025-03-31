@@ -510,8 +510,9 @@ const triggerWinSequence = () => {
     }, children.length * 100 + 500);
 };
 // Used to check if autocomplete is available
+let isAutocompleting = false;
 export const checkForAutocomplete = () => {
-    if (getDifficulty() === "Normal" || getDifficulty() === "Insane")
+    if (isAutocompleting || getDifficulty() === "Normal" || getDifficulty() === "Insane")
         return;
     // Check if each card is uncovered
     const columns = $(".tableau");
@@ -528,7 +529,7 @@ export const checkForAutocomplete = () => {
     $("#autocomplete-btn").css("display", "block");
     $("#autocomplete-btn").off("click"); // Prevent adding multiple event listeners
     $("#autocomplete-btn").one("click", function () {
-        $(this).remove();
+        $(this).css("display", "");
         unbindEvents(); // Unbind events
         beginAutocomplete();
     });
@@ -536,6 +537,7 @@ export const checkForAutocomplete = () => {
 // Used to start autocompleting the game
 const beginAutocomplete = async () => {
     // Lock user inputs
+    isAutocompleting = true;
     for (let i = 0; i < cards.length; ++i)
         cards[i].removeEventListeners();
     // Continue until win condition is met
@@ -587,6 +589,8 @@ const beginAutocomplete = async () => {
         await uncoverCardFromStock(); // Cycle stock to next card
         await wait(100);
     } while (!checkForWinCondition());
+    // Unlock autocompleting flag
+    isAutocompleting = false;
 };
 /**************************** END CONDITION CHECKERS ****************************/
 /**************************** START MOVE HISTORY ****************************/
