@@ -22,6 +22,10 @@
     --theme-gold-base: #ffd700;
     --theme-gold-light: #ffe656;
 
+    --anchor-dark: #3f73d3;
+    --anchor-base: #6b9af1;
+    --anchor-lite: #abc8ff;
+
     --card-height: min(17vh, calc(100vw * 9 / 16 * 0.17));
     --card-width: calc(var(--card-height) * 0.75);
 }
@@ -365,13 +369,24 @@ html {
     font: 700 calc(0.75 * var(--card-width))/1.5 "Signika", sans-serif;
 }
 
-.overlay p {
+.overlay p,
+.overlay a {
     margin-bottom: 0.3em;
     color: var(--theme-gray);
     font: 600 calc(0.27 * var(--card-width)) / 1.5 "Signika", sans-serif;
     text-align: center;
     text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
 }
+
+.overlay a {
+    color: var(--anchor-base);
+    text-shadow: none;
+    font-size: calc(0.2 * var(--card-width));
+    transition: 0.1s color;
+}
+
+.overlay a:hover { color: var(--anchor-lite); }
+.overlay a:active { color: var(--anchor-dark); }
 
 .overlay button {
     margin-bottom: 2em;
