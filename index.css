@@ -54,7 +54,7 @@ html {
     width: 100vw;
     height: calc(100vw * 9 / 16);
     max-width: calc(100vh * 16 / 9);
-    max-height: 100vh;
+    max-height: 100%;
 
     display: flex;
     flex-direction: column;
@@ -368,8 +368,9 @@ html {
 .overlay p {
     margin-bottom: 0.3em;
     color: var(--theme-gray);
-    text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
     font: 600 calc(0.27 * var(--card-width)) / 1.5 "Signika", sans-serif;
+    text-align: center;
+    text-shadow: 0.1em 0.1em 0.08em var(--theme-black);
 }
 
 .overlay button {
@@ -587,4 +588,33 @@ html {
         transform: scale(2) rotate(360deg);
         z-index: 999999;
     }
+}
+
+/* Mobile Styles */
+
+#rotation-div {
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background-color: #060606;
+
+    z-index: 9999999;
+}
+
+#rotation-div > h1 {
+    padding: 0 0.5em;
+    color: var(--theme-white);
+    font: 700 3rem "Signika", sans-serif;
+    text-align: center;
+}
+
+@media screen and (orientation: portrait) {
+    #rotation-div { display: flex; }
 }
