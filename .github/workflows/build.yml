@@ -22,10 +22,11 @@ jobs:
 
       - name: Compile to public/
         run: |
-          mkdir public public/js
+          mkdir public
           cp *.html public/
           cp *.css public/
-          cp js/* public/js
+          cp -r js/ public/
+          cp -r res/ public/
 
       #################### VALIDATE ####################
       - name: W3 Validate HTML
